@@ -42,5 +42,5 @@ int create_socket()
 
 int main(void)
 {
-    int sock = create_socket();
+    //int sock = create_socket();
 }
