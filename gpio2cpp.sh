@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# generate #define directives for Raspberry Pi pins (BCM)
+
 IFS='
 '
 
