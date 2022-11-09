@@ -8,7 +8,8 @@ int main()
 {
     gpio_init();
 
-    printf("works as intended\n");
+    motor_forward();
+    while(true);
 
     gpio_cleanup();
     return 0;

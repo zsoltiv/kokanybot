@@ -23,7 +23,7 @@ static struct gpiod_line *motorpin_init(unsigned int offset)
 {
     struct gpiod_line *line = gpiod_chip_get_line(chip, offset);
     if(!line) {
-        perror("gpiod_chip_get_line");
+        perror("gpiod_chip_get_line()");
         exit(1);
     }
 
@@ -41,7 +41,7 @@ void gpio_init(void)
 {
     chip = gpiod_chip_open(GPIO_CHIP_PATH);
     if(!chip) {
-        perror("gpiod_chip_open");
+        perror("gpiod_chip_open()");
         gpio_err();
     }
 
@@ -66,4 +66,59 @@ void gpio_cleanup(void)
     if(right_positive) gpiod_line_release(right_positive);
     if(right_negative) gpiod_line_release(right_negative);
     if(chip) gpiod_chip_close(chip);
+}
+
+void motor_stop(void)
+{
+    gpiod_line_set_value(left_en,        GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(right_en,       GPIOD_LINE_ACTIVE_STATE_LOW);
+
+    gpiod_line_set_value(left_positive,  GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(left_negative,  GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(right_positive, GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(right_negative, GPIOD_LINE_ACTIVE_STATE_LOW);
+}
+
+void motor_forward(void)
+{
+    gpiod_line_set_value(left_en,        GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(right_en,       GPIOD_LINE_ACTIVE_STATE_HIGH);
+
+    gpiod_line_set_value(left_positive,  GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(left_negative,  GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(right_positive, GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(right_negative, GPIOD_LINE_ACTIVE_STATE_LOW);
+}
+
+void motor_backward(void)
+{
+    gpiod_line_set_value(left_en,        GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(right_en,       GPIOD_LINE_ACTIVE_STATE_HIGH);
+
+    gpiod_line_set_value(left_positive,  GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(left_negative,  GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(right_positive, GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(right_negative, GPIOD_LINE_ACTIVE_STATE_HIGH);
+}
+
+void motor_left(void)
+{
+    gpiod_line_set_value(left_en,        GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(right_en,       GPIOD_LINE_ACTIVE_STATE_HIGH);
+
+    gpiod_line_set_value(left_positive,  GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(left_negative,  GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(right_positive, GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(right_negative, GPIOD_LINE_ACTIVE_STATE_HIGH);
+}
+
+void motor_right(void)
+{
+    gpiod_line_set_value(left_en,        GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(right_en,       GPIOD_LINE_ACTIVE_STATE_HIGH);
+
+    gpiod_line_set_value(left_positive,  GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(left_negative,  GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(right_positive, GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(right_negative, GPIOD_LINE_ACTIVE_STATE_LOW);
 }
