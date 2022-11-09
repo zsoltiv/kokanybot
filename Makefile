@@ -10,7 +10,7 @@ SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SRC))
 
 # TODO: robot.o-ban van a szerver halozati kodja, ATRAKNI
-SERVEROBJ = $(BUILDDIR)/server.o $(BUILDDIR)/gpio.o
+SERVEROBJ = $(BUILDDIR)/server.o $(BUILDDIR)/gpio.o $(BUILDDIR)/i2c.o
 CLIENTOBJ = $(BUILDDIR)/robot.o
 
 all: server client
