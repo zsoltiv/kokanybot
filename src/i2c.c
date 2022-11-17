@@ -9,6 +9,8 @@
 
 #define PCA9685_ADDR 0x40
 
+int i2c;
+
 void i2c_init(void)
 {
     i2c = open("/dev/i2c-1", O_RDWR);
