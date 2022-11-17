@@ -29,7 +29,7 @@ static struct gpiod_line *motorpin_init(unsigned int offset)
 
     if(gpiod_line_request_output(line,
                                  GPIO_CONSUMER,
-                                 GPIOD_LINE_ACTIVE_STATE_LOW)) {
+                                 GPIO_LOW)) {
         perror("gpiod_line_request_output()");
         gpio_err();
     }
@@ -70,55 +70,55 @@ void gpio_cleanup(void)
 
 void motor_stop(void)
 {
-    gpiod_line_set_value(left_en,        GPIOD_LINE_ACTIVE_STATE_LOW);
-    gpiod_line_set_value(right_en,       GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(left_en,        GPIO_LOW);
+    gpiod_line_set_value(right_en,       GPIO_LOW);
 
-    gpiod_line_set_value(left_positive,  GPIOD_LINE_ACTIVE_STATE_LOW);
-    gpiod_line_set_value(left_negative,  GPIOD_LINE_ACTIVE_STATE_LOW);
-    gpiod_line_set_value(right_positive, GPIOD_LINE_ACTIVE_STATE_LOW);
-    gpiod_line_set_value(right_negative, GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(left_positive,  GPIO_LOW);
+    gpiod_line_set_value(left_negative,  GPIO_LOW);
+    gpiod_line_set_value(right_positive, GPIO_LOW);
+    gpiod_line_set_value(right_negative, GPIO_LOW);
 }
 
 void motor_forward(void)
 {
-    gpiod_line_set_value(left_en,        GPIOD_LINE_ACTIVE_STATE_HIGH);
-    gpiod_line_set_value(right_en,       GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(left_en,        GPIO_HIGH);
+    gpiod_line_set_value(right_en,       GPIO_HIGH);
 
-    gpiod_line_set_value(left_positive,  GPIOD_LINE_ACTIVE_STATE_HIGH);
-    gpiod_line_set_value(left_negative,  GPIOD_LINE_ACTIVE_STATE_LOW);
-    gpiod_line_set_value(right_positive, GPIOD_LINE_ACTIVE_STATE_HIGH);
-    gpiod_line_set_value(right_negative, GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(left_positive,  GPIO_HIGH);
+    gpiod_line_set_value(left_negative,  GPIO_LOW);
+    gpiod_line_set_value(right_positive, GPIO_HIGH);
+    gpiod_line_set_value(right_negative, GPIO_LOW);
 }
 
 void motor_backward(void)
 {
-    gpiod_line_set_value(left_en,        GPIOD_LINE_ACTIVE_STATE_HIGH);
-    gpiod_line_set_value(right_en,       GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(left_en,        GPIO_HIGH);
+    gpiod_line_set_value(right_en,       GPIO_HIGH);
 
-    gpiod_line_set_value(left_positive,  GPIOD_LINE_ACTIVE_STATE_LOW);
-    gpiod_line_set_value(left_negative,  GPIOD_LINE_ACTIVE_STATE_HIGH);
-    gpiod_line_set_value(right_positive, GPIOD_LINE_ACTIVE_STATE_LOW);
-    gpiod_line_set_value(right_negative, GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(left_positive,  GPIO_LOW);
+    gpiod_line_set_value(left_negative,  GPIO_HIGH);
+    gpiod_line_set_value(right_positive, GPIO_LOW);
+    gpiod_line_set_value(right_negative, GPIO_HIGH);
 }
 
 void motor_left(void)
 {
-    gpiod_line_set_value(left_en,        GPIOD_LINE_ACTIVE_STATE_HIGH);
-    gpiod_line_set_value(right_en,       GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(left_en,        GPIO_HIGH);
+    gpiod_line_set_value(right_en,       GPIO_HIGH);
 
-    gpiod_line_set_value(left_positive,  GPIOD_LINE_ACTIVE_STATE_HIGH);
-    gpiod_line_set_value(left_negative,  GPIOD_LINE_ACTIVE_STATE_LOW);
-    gpiod_line_set_value(right_positive, GPIOD_LINE_ACTIVE_STATE_LOW);
-    gpiod_line_set_value(right_negative, GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(left_positive,  GPIO_HIGH);
+    gpiod_line_set_value(left_negative,  GPIO_LOW);
+    gpiod_line_set_value(right_positive, GPIO_LOW);
+    gpiod_line_set_value(right_negative, GPIO_HIGH);
 }
 
 void motor_right(void)
 {
-    gpiod_line_set_value(left_en,        GPIOD_LINE_ACTIVE_STATE_HIGH);
-    gpiod_line_set_value(right_en,       GPIOD_LINE_ACTIVE_STATE_HIGH);
+    gpiod_line_set_value(left_en,        GPIO_HIGH);
+    gpiod_line_set_value(right_en,       GPIO_HIGH);
 
-    gpiod_line_set_value(left_positive,  GPIOD_LINE_ACTIVE_STATE_LOW);
-    gpiod_line_set_value(left_negative,  GPIOD_LINE_ACTIVE_STATE_HIGH);
-    gpiod_line_set_value(right_positive, GPIOD_LINE_ACTIVE_STATE_HIGH);
-    gpiod_line_set_value(right_negative, GPIOD_LINE_ACTIVE_STATE_LOW);
+    gpiod_line_set_value(left_positive,  GPIO_LOW);
+    gpiod_line_set_value(left_negative,  GPIO_HIGH);
+    gpiod_line_set_value(right_positive, GPIO_HIGH);
+    gpiod_line_set_value(right_negative, GPIO_LOW);
 }

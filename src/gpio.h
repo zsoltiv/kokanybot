@@ -6,6 +6,11 @@
 #define GPIO_CHIP_PATH "/dev/gpiochip0"
 #define GPIO_CONSUMER "kokanybot"
 
+enum {
+    GPIO_LOW = 0,
+    GPIO_HIGH,
+};
+
 extern struct gpiod_chip *chip;
 extern struct gpiod_line *left_en,
                   *left_positive,

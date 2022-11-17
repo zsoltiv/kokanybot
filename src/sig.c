@@ -1,4 +1,5 @@
 #include <signal.h>
+#include <stdlib.h>
 
 #include "gpio.h"
 #include "sig.h"
@@ -13,4 +14,6 @@ void sig_handler(int signum)
         default:
             break;
     }
+
+    exit(1);
 }
