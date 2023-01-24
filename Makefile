@@ -1,7 +1,9 @@
 CC = cc
 CFLAGS = -g
 CXXFLAGS = $(CFLAGS)
-LDFLAGS = -lgpiod
+LDFLAGS = -lgpiod -lopencv_core
+
+BIN = kokanybot
 
 SRCDIR = src
 BUILDDIR = build
@@ -9,16 +11,11 @@ BUILDDIR = build
 SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SRC))
 
-# TODO: robot.o-ban van a szerver halozati kodja, ATRAKNI
-SERVEROBJ = $(BUILDDIR)/server.o $(BUILDDIR)/gpio.o $(BUILDDIR)/i2c.o $(BUILDDIR)/sig.o
-CLIENTOBJ = $(BUILDDIR)/robot.o
+.PHONY: all
 
-all: server client
+all: $(BIN)
 
-server: $(SERVEROBJ)
-	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@
-
-client: $(SERVEROBJ)
+$(BIN): $(OBJ)
 	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
