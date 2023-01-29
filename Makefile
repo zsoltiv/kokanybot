@@ -1,26 +1,33 @@
 CC = cc
+CXX = c++
+CXXINC = `pkg-config --cflags opencv4`
 CFLAGS = -g
-CXXFLAGS = $(CFLAGS)
-LDFLAGS = -lgpiod -lopencv_core
+CXXFLAGS = $(CXXINC) $(CFLAGS)
+LDFLAGS = -lgpiod `pkg-config --libs opencv4`
 
 BIN = kokanybot
 
 SRCDIR = src
 BUILDDIR = build
 
-SRC = $(wildcard $(SRCDIR)/*.c)
-OBJ = $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SRC))
+SRC := $(wildcard $(SRCDIR)/*.c)
+SRC += $(wildcard $(SRCDIR)/*.cpp)
+OBJ += $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%.o,$(SRC))
 
 .PHONY: all
 
 all: $(BIN)
 
 $(BIN): $(OBJ)
-	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@
+	$(CXX) $^ $(CXXFLAGS) $(LDFLAGS) -o $@
 
-$(BUILDDIR)/%.o: $(SRCDIR)/%.c
+$(BUILDDIR)/%.c.o: $(SRCDIR)/%.c
 	mkdir -p $(BUILDDIR)
 	$(CC) $< -c $(CFLAGS) -o $@
 
+$(BUILDDIR)/%.cpp.o: $(SRCDIR)/%.cpp
+	mkdir -p $(BUILDDIR)
+	$(CXX) $< -c $(CXXFLAGS) -o $@
+
 clean:
-	rm -rf $(BUILDDIR) server client
+	rm -rf $(BUILDDIR) $(BIN)
