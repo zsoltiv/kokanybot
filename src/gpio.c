@@ -55,10 +55,6 @@ void gpio_init(void)
 
 void gpio_cleanup(void)
 {
-    /* 
-     * lots of ifs because this function is called in
-     * places where certain resources aren't initialized yet
-     */
     if(left_en) gpiod_line_release(left_en);
     if(left_positive) gpiod_line_release(left_positive);
     if(left_negative) gpiod_line_release(left_negative);

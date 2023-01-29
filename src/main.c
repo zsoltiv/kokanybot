@@ -5,6 +5,9 @@
 #include <string.h>
 #include <sys/ioctl.h>
 
+#include "img.h"
+
 int main(void)
 {
+    do_image_recognition();
 }

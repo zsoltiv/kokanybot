@@ -1,6 +1,10 @@
 #ifndef GPIO_H
 #define GPIO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <gpiod.h>
 
 #define GPIO_CHIP_PATH "/dev/gpiochip0"
@@ -27,5 +31,9 @@ void motor_forward(void);
 void motor_backward(void);
 void motor_left(void);
 void motor_right(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* GPIO_H */

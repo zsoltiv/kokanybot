@@ -1,6 +1,10 @@
 #ifndef OFFSETS_H
 #define OFFSETS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define ID_SDA 0
 #define ID_SCL 1
 #define SDA1 2
@@ -67,5 +71,9 @@
 #define CAM_GPIO 5
 #define SD_PWR_ON 6
 #define SD_OC_N 7
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
