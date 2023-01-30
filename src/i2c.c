@@ -22,6 +22,13 @@ static inline uint8_t servo(int n)
     return (uint8_t) (n * 4 + 6);
 }
 
+static inline uint16_t deg_to_pwm(int deg)
+{
+    // [0;359]-et konvertal a [0;4096] tartomanyba
+    //return (deg - 0) * (4095 - 0) / (359 - 0) + 0;
+    return (uint16_t) (deg * 4095u / 359u);
+}
+
 void i2c_init(void)
 {
     i2c = open("/dev/i2c-1", O_RDWR);
