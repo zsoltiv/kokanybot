@@ -59,4 +59,6 @@ void i2c_servo_set(int n, int degrees)
 
     uint8_t addr = servo(n);
     write(i2c, &addr, 1);
+    uint16_t pwm = deg_to_pwm(degrees);
+    write(i2c, &pwm, 2);
 }

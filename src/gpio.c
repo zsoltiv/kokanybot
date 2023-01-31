@@ -5,11 +5,11 @@
 #include "gpio.h"
 #include "offsets.h"
 
-struct gpiod_chip *chip;
-struct gpiod_line *left_en,
-                  *left_positive,
-                  *left_negative;
-struct gpiod_line *right_en,
+struct gpiod_chip           *chip;
+struct gpiod_line        *left_en,
+                   *left_positive,
+                   *left_negative;
+struct gpiod_line       *right_en,
                   *right_positive,
                   *right_negative;
 
@@ -51,10 +51,16 @@ void gpio_init(void)
     right_en       = motorpin_init(GPIO17);
     right_positive = motorpin_init( GPIO6);
     right_negative = motorpin_init(GPIO22);
+
+    gpiod_line_set_value(left_en,        GPIO_HIGH);
+    gpiod_line_set_value(right_en,       GPIO_HIGH);
 }
 
 void gpio_cleanup(void)
 {
+    gpiod_line_set_value(left_en,        GPIO_LOW);
+    gpiod_line_set_value(right_en,       GPIO_LOW);
+
     if(left_en) gpiod_line_release(left_en);
     if(left_positive) gpiod_line_release(left_positive);
     if(left_negative) gpiod_line_release(left_negative);
@@ -66,9 +72,6 @@ void gpio_cleanup(void)
 
 void motor_stop(void)
 {
-    gpiod_line_set_value(left_en,        GPIO_LOW);
-    gpiod_line_set_value(right_en,       GPIO_LOW);
-
     gpiod_line_set_value(left_positive,  GPIO_LOW);
     gpiod_line_set_value(left_negative,  GPIO_LOW);
     gpiod_line_set_value(right_positive, GPIO_LOW);
@@ -77,9 +80,6 @@ void motor_stop(void)
 
 void motor_forward(void)
 {
-    gpiod_line_set_value(left_en,        GPIO_HIGH);
-    gpiod_line_set_value(right_en,       GPIO_HIGH);
-
     gpiod_line_set_value(left_positive,  GPIO_HIGH);
     gpiod_line_set_value(left_negative,  GPIO_LOW);
     gpiod_line_set_value(right_positive, GPIO_HIGH);
@@ -88,9 +88,6 @@ void motor_forward(void)
 
 void motor_backward(void)
 {
-    gpiod_line_set_value(left_en,        GPIO_HIGH);
-    gpiod_line_set_value(right_en,       GPIO_HIGH);
-
     gpiod_line_set_value(left_positive,  GPIO_LOW);
     gpiod_line_set_value(left_negative,  GPIO_HIGH);
     gpiod_line_set_value(right_positive, GPIO_LOW);
@@ -99,9 +96,6 @@ void motor_backward(void)
 
 void motor_left(void)
 {
-    gpiod_line_set_value(left_en,        GPIO_HIGH);
-    gpiod_line_set_value(right_en,       GPIO_HIGH);
-
     gpiod_line_set_value(left_positive,  GPIO_HIGH);
     gpiod_line_set_value(left_negative,  GPIO_LOW);
     gpiod_line_set_value(right_positive, GPIO_LOW);
@@ -110,9 +104,6 @@ void motor_left(void)
 
 void motor_right(void)
 {
-    gpiod_line_set_value(left_en,        GPIO_HIGH);
-    gpiod_line_set_value(right_en,       GPIO_HIGH);
-
     gpiod_line_set_value(left_positive,  GPIO_LOW);
     gpiod_line_set_value(left_negative,  GPIO_HIGH);
     gpiod_line_set_value(right_positive, GPIO_HIGH);
