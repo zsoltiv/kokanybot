@@ -9,5 +9,5 @@ I2C, SSH bekapcsolva
 
 ## Csomagok
 ```
-sudo apt install git make autoconf autoconf-archive gcc gpiod opencv ffmpeg
+sudo apt install git make autoconf autoconf-archive gcc gpiod opencv ffmpeg libopencv-dev libi2c-dev
 ```
