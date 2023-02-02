@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
+#include <i2c/smbus.h>
 
 #include "i2c.h"
 
@@ -57,8 +58,6 @@ void i2c_servo_set(int n, int degrees)
     if(degrees < 0 || degrees > 359)
         return;
 
-    uint8_t addr = servo(n);
-    write(i2c, &addr, 1);
-    uint16_t pwm = deg_to_pwm(degrees);
-    write(i2c, &pwm, 2);
+    if(i2c_smbus_write_word_data(i2c, servo(n), deg_to_pwm(degrees)) < 0)
+        perror("i2c_smbus_write_word_data()");
 }

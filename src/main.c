@@ -6,8 +6,14 @@
 #include <sys/ioctl.h>
 
 #include "img.h"
+#include "i2c.h"
 
 int main(void)
 {
-    do_image_recognition();
+    i2c_init();
+    i2c_servo_set(0, 359);
+    while(1) { // robot loop
+        // TODO input
+        sleep(1);
+    }
 }
