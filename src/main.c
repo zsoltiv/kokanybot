@@ -7,9 +7,11 @@
 
 #include "img.h"
 #include "i2c.h"
+#include "input.h"
 
 int main(void)
 {
+    input_init();
     i2c_init();
     i2c_servo_set(0, 359);
     while(1) { // robot loop

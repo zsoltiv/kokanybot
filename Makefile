@@ -3,7 +3,7 @@ CXX = c++
 CXXINC = `pkg-config --cflags opencv4`
 CFLAGS = -g
 CXXFLAGS = $(CXXINC) $(CFLAGS)
-LDFLAGS = -lgpiod -li2c `pkg-config --libs opencv4`
+LDFLAGS = -li2c `pkg-config --libs opencv4 libgpiod libudev libinput`
 
 BIN = kokanybot
 
