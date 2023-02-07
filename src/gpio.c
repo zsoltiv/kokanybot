@@ -16,7 +16,7 @@ struct gpiod_line       *right_en,
 static void gpio_err(void)
 {
     gpio_cleanup();
-    exit(1);
+    //exit(1);
 }
 
 static struct gpiod_line *motorpin_init(unsigned int offset)

@@ -25,7 +25,7 @@ static inline uint8_t servo(int n)
 
 static inline uint16_t deg_to_pwm(int deg)
 {
-    // [0;359]-et konvertal a [0;4096] tartomanyba
+    // [0;359]-et konvertal a [0;4095] tartomanyba
     //return (deg - 0) * (4095 - 0) / (359 - 0) + 0;
     return (uint16_t) (deg * 4095u / 359u);
 }
@@ -36,13 +36,11 @@ void i2c_init(void)
     if(i2c < 0) {
         perror("open()");
         i2c_cleanup();
-        exit(1);
     }
 
     if(ioctl(i2c, I2C_SLAVE, PCA9685_ADDR)) {
         perror("ioctl()");
         i2c_cleanup();
-        exit(1);
     }
 }
 
