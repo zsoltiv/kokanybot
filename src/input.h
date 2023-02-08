@@ -3,5 +3,6 @@
 
 void input_init(void);
 void input_close(void);
+void input_receive_input(void);
 
 #endif /* INPUT_H */

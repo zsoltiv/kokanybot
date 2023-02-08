@@ -12,10 +12,7 @@
 int main(void)
 {
     input_init();
-    i2c_init();
-    i2c_servo_set(0, 359);
     while(1) { // robot loop
-        // TODO input
-        sleep(1);
+        input_receive_input();
     }
 }
