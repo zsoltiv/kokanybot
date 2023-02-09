@@ -1,6 +1,7 @@
 CC = cc
 CXX = c++
 CXXINC = `pkg-config --cflags opencv4`
+STDC = -std=c11
 CFLAGS = -g
 CXXFLAGS = $(CXXINC) $(CFLAGS)
 LDFLAGS = -li2c `pkg-config --libs opencv4 libgpiod libudev libinput`
@@ -23,7 +24,7 @@ $(BIN): $(OBJ)
 
 $(BUILDDIR)/%.c.o: $(SRCDIR)/%.c
 	mkdir -p $(BUILDDIR)
-	$(CC) $< -c $(CFLAGS) -o $@
+	$(CC) $< -c $(STDC) $(CFLAGS) -o $@
 
 $(BUILDDIR)/%.cpp.o: $(SRCDIR)/%.cpp
 	mkdir -p $(BUILDDIR)
