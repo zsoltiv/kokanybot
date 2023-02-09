@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 void do_image_recognition(void);
+int img_thread(void *arg);
 
 #ifdef __cplusplus
 }

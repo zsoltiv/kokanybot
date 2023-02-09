@@ -51,3 +51,4 @@ extern "C" void do_image_recognition(void)
     cv::Vec3i avg2 = average_color(testData);
     std::cout << color_distance_percent(avg1, avg2) << std::endl;
 }
+

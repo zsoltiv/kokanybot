@@ -38,8 +38,6 @@ void input_init(void)
         fprintf(stderr, "libinput_udev_create_context() nem sikerult\n");
     if(libinput_udev_assign_seat(lctx, "seat0") < 0)
         fprintf(stderr, "libinput_udev_assign_seat() hibaba utkozott\n");
-    libinput_log_set_priority(lctx, LIBINPUT_LOG_PRIORITY_DEBUG);
-    libinput_resume(lctx);
 }
 
 void input_close(void)
