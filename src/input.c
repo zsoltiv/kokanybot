@@ -11,11 +11,9 @@
 #include <libinput.h>
 
 #include "cmd.h"
+#include "input.h"
 
-struct {
-    uint32_t key;
-    bool pressed;
-} key_states[] = {
+struct key_state key_states[4] = {
     { .key = KEY_W, .pressed = false },
     { .key = KEY_A, .pressed = false },
     { .key = KEY_S, .pressed = false },
