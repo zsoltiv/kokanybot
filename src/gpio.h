@@ -7,6 +7,8 @@ extern "C" {
 
 #include <gpiod.h>
 
+#include <stdbool.h>
+
 #define GPIO_CHIP_PATH "/dev/gpiochip0"
 #define GPIO_CONSUMER "kokanybot"
 
@@ -27,10 +29,10 @@ void gpio_init(void);
 void gpio_cleanup(void);
 
 void motor_stop(void);
-void motor_forward(void);
-void motor_backward(void);
-void motor_left(void);
-void motor_right(void);
+void motor_forward(bool pressed);
+void motor_backward(bool pressed);
+void motor_left(bool pressed);
+void motor_right(bool pressed);
 
 #ifdef __cplusplus
 }

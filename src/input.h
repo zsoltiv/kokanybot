@@ -4,13 +4,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-struct key_state {
+typedef void (*toggle_func)(bool);
+
+struct key_bind {
     uint32_t key;
-    bool pressed;
+    toggle_func func;
 };
 
 // WASD allapotok GPIO-hoz
-extern struct key_state key_states[4];
+extern struct key_bind key_binds[4];
 
 void input_init(void);
 void input_close(void);

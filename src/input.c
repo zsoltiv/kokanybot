@@ -13,21 +13,14 @@
 #include "cmd.h"
 #include "input.h"
 
-struct key_state key_states[4] = {
-    { .key = KEY_W, .pressed = false },
-    { .key = KEY_A, .pressed = false },
-    { .key = KEY_S, .pressed = false },
-    { .key = KEY_D, .pressed = false },
-};
-
 struct libinput_interface linterface;
 struct libinput *lctx;
 struct udev *uctx;
 
-static int get_key_state_index(uint32_t key)
+static int get_key_bind_index(uint32_t key)
 {
-    for(int i = 0; i < sizeof(key_states) / sizeof(key_states[0]); i++) {
-        if(key_states[i].key == key)
+    for(int i = 0; i < sizeof(key_binds) / sizeof(key_binds[0]); i++) {
+        if(key_binds[i].key == key)
             return i;
     }
 
@@ -84,10 +77,10 @@ void input_receive_input(void)
     if(libinput_event_get_type(ev) == LIBINPUT_EVENT_KEYBOARD_KEY) {
         struct libinput_event_keyboard *kbev = libinput_event_get_keyboard_event(ev);
         uint32_t keycode = libinput_event_keyboard_get_key(kbev);
-        int state_idx = get_key_state_index(keycode);
+        int state_idx = get_key_bind_index(keycode);
         if(state_idx > -1) {
-            enum libinput_key_state lkey_state = libinput_event_keyboard_get_key_state(kbev);
-            key_states[state_idx].pressed = lkey_state == LIBINPUT_KEY_STATE_PRESSED ? true : false;
+            enum libinput_key_state lkey_bind = libinput_event_keyboard_get_key_state(kbev);
+            key_binds[state_idx].func(LIBINPUT_KEY_STATE_PRESSED ? true : false);
         }
     }
     libinput_event_destroy(ev);
