@@ -69,36 +69,54 @@ void gpio_cleanup(void)
     if(chip) gpiod_chip_close(chip);
 }
 
-/* TODO pressed parametert hasznalni */
-
 void motor_forward(bool pressed)
 {
-    gpiod_line_set_value(left_positive,  GPIO_HIGH);
     gpiod_line_set_value(left_negative,  GPIO_LOW);
-    gpiod_line_set_value(right_positive, GPIO_HIGH);
     gpiod_line_set_value(right_negative, GPIO_LOW);
+    if(pressed) {
+        gpiod_line_set_value(left_positive,  GPIO_HIGH);
+        gpiod_line_set_value(right_positive, GPIO_HIGH);
+    } else {
+        gpiod_line_set_value(left_positive,  GPIO_LOW);
+        gpiod_line_set_value(right_positive, GPIO_LOW);
+    }
 }
 
 void motor_backward(bool pressed)
 {
     gpiod_line_set_value(left_positive,  GPIO_LOW);
-    gpiod_line_set_value(left_negative,  GPIO_HIGH);
     gpiod_line_set_value(right_positive, GPIO_LOW);
-    gpiod_line_set_value(right_negative, GPIO_HIGH);
+    if(pressed) {
+        gpiod_line_set_value(left_negative,  GPIO_HIGH);
+        gpiod_line_set_value(right_negative, GPIO_HIGH);
+    } else {
+        gpiod_line_set_value(left_negative,  GPIO_LOW);
+        gpiod_line_set_value(right_negative, GPIO_LOW);
+    }
 }
 
 void motor_left(bool pressed)
 {
-    gpiod_line_set_value(left_positive,  GPIO_HIGH);
     gpiod_line_set_value(left_negative,  GPIO_LOW);
     gpiod_line_set_value(right_positive, GPIO_LOW);
-    gpiod_line_set_value(right_negative, GPIO_HIGH);
+    if(pressed) {
+        gpiod_line_set_value(left_positive,  GPIO_HIGH);
+        gpiod_line_set_value(right_negative, GPIO_HIGH);
+    } else {
+        gpiod_line_set_value(left_positive,  GPIO_LOW);
+        gpiod_line_set_value(right_negative, GPIO_LOW);
+    }
 }
 
 void motor_right(bool pressed)
 {
     gpiod_line_set_value(left_positive,  GPIO_LOW);
-    gpiod_line_set_value(left_negative,  GPIO_HIGH);
-    gpiod_line_set_value(right_positive, GPIO_HIGH);
     gpiod_line_set_value(right_negative, GPIO_LOW);
+    if(pressed) {
+        gpiod_line_set_value(left_negative,  GPIO_HIGH);
+        gpiod_line_set_value(right_positive, GPIO_HIGH);
+    } else {
+        gpiod_line_set_value(left_negative,  GPIO_LOW);
+        gpiod_line_set_value(right_positive, GPIO_LOW);
+    }
 }
