@@ -23,14 +23,13 @@ static struct gpiod_line *motorpin_init(unsigned int offset)
     struct gpiod_line *line = gpiod_chip_get_line(chip, offset);
     if(!line) {
         perror("gpiod_chip_get_line()");
-        exit(1);
     }
 
     if(gpiod_line_request_output(line,
                                  GPIO_CONSUMER,
                                  GPIO_LOW)) {
         perror("gpiod_line_request_output()");
-        gpio_err();
+        //gpio_err();
     }
 
     return line;
@@ -41,7 +40,7 @@ void gpio_init(void)
     chip = gpiod_chip_open(GPIO_CHIP_PATH);
     if(!chip) {
         perror("gpiod_chip_open()");
-        gpio_err();
+        //gpio_err();
     }
 
     left_en        = motorpin_init( GPIO5);
