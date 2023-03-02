@@ -8,18 +8,20 @@
 #include "offsets.h"
 
 struct gpiod_chip           *chip;
-struct gpiod_line        *left_en,
-                   *left_positive,
-                   *left_negative;
-struct gpiod_line       *right_en,
-                  *right_positive,
-                  *right_negative;
+struct gpiod_line        *m1_en,
+                   *m1_positive,
+                   *m1_negative,
+                         *m2_en,
+                   *m2_positive,
+                   *m2_negative,
+                         *m3_en,
+                   *m3_positive,
+                   *m3_negative,
+                         *m4_en,
+                   *m4_positive,
+                   *m4_negative;
 
-static void gpio_err(void)
-{
-    gpio_cleanup();
-}
-
+// debugra
 static int my_line_set_value(struct gpiod_line *line, int value)
 {
     int ret = gpiod_line_set_value(line, value);
@@ -39,8 +41,9 @@ static struct gpiod_line *motorpin_init(unsigned int offset)
                                  GPIO_CONSUMER,
                                  GPIO_LOW)) {
         perror("gpiod_line_request_output()");
-        //gpio_err();
     }
+
+    gpiod_line_set_value(line, GPIO_LOW);
 
     return line;
 }
@@ -53,83 +56,115 @@ void gpio_init(void)
         //gpio_err();
     }
 
-    left_en        = motorpin_init( GPIO5);
-    left_positive  = motorpin_init(GPIO24);
-    left_negative  = motorpin_init(GPIO27);
-    right_en       = motorpin_init(GPIO17);
-    right_positive = motorpin_init( GPIO6);
-    right_negative = motorpin_init(GPIO22);
+    m1_en        = motorpin_init( GPIO5);
+    m1_positive  = motorpin_init(GPIO24);
+    m1_negative  = motorpin_init(GPIO27);
+    m2_en        = motorpin_init(GPIO17);
+    m2_positive  = motorpin_init( GPIO6);
+    m2_negative  = motorpin_init(GPIO22);
+    m3_en        = motorpin_init(GPIO12);
+    m3_positive  = motorpin_init(GPIO23);
+    m3_negative  = motorpin_init(GPIO16);
+    m4_en        = motorpin_init(GPIO25);
+    m4_positive  = motorpin_init(GPIO13);
+    m4_negative  = motorpin_init(GPIO18);
 
-    my_line_set_value(left_en,        GPIO_HIGH);
-    my_line_set_value(right_en,       GPIO_HIGH);
+    gpiod_line_set_value(m1_en,        GPIO_HIGH);
+    gpiod_line_set_value(m2_en,       GPIO_HIGH);
 }
 
 void gpio_cleanup(void)
 {
-    my_line_set_value(left_en,        GPIO_LOW);
-    my_line_set_value(right_en,       GPIO_LOW);
+    gpiod_line_set_value(m1_en,        GPIO_LOW);
+    gpiod_line_set_value(m2_en,       GPIO_LOW);
 
-    if(left_en) gpiod_line_release(left_en);
-    if(left_positive) gpiod_line_release(left_positive);
-    if(left_negative) gpiod_line_release(left_negative);
-    if(right_en) gpiod_line_release(right_en);
-    if(right_positive) gpiod_line_release(right_positive);
-    if(right_negative) gpiod_line_release(right_negative);
+    if(m1_en) gpiod_line_release(m1_en);
+    if(m1_positive) gpiod_line_release(left_positive);
+    if(m1_negative) gpiod_line_release(m1_negative);
+    if(m2_en) gpiod_line_release(m2_en);
+    if(m2_positive) gpiod_line_release(m2_positive);
+    if(m2_negative) gpiod_line_release(m2_negative);
+    if(m3_en) gpiod_line_release(m3_en);
+    if(m3_positive) gpiod_line_release(m3_positive);
+    if(m3_negative) gpiod_line_release(m3_negative);
+    if(m4_en) gpiod_line_release(m4_en);
+    if(m4_positive) gpiod_line_release(m4_positive);
+    if(m4_negative) gpiod_line_release(m4_negative);
     if(chip) gpiod_chip_close(chip);
 }
 
 void motor_forward(bool pressed)
 {
-    printf("%d", pressed);
-    my_line_set_value(left_negative,  GPIO_LOW);
-    my_line_set_value(right_negative, GPIO_LOW);
+    gpiod_line_set_value(m1_negative,  GPIO_LOW);
+    gpiod_line_set_value(m4_negative,  GPIO_LOW);
+    gpiod_line_set_value(m2_negative, GPIO_LOW);
+    gpiod_line_set_value(m3_negative, GPIO_LOW);
     if(pressed) {
-        my_line_set_value(left_positive,  GPIO_HIGH);
-        my_line_set_value(right_positive, GPIO_HIGH);
+        gpiod_line_set_value(m1_positive,  GPIO_HIGH);
+        gpiod_line_set_value(m4_positive,  GPIO_HIGH);
+        gpiod_line_set_value(m2_positive, GPIO_HIGH);
+        gpiod_line_set_value(m3_positive, GPIO_HIGH);
     } else {
-        my_line_set_value(left_positive,  GPIO_LOW);
-        my_line_set_value(right_positive, GPIO_LOW);
+        gpiod_line_set_value(m1_positive,  GPIO_LOW);
+        gpiod_line_set_value(m4_positive,  GPIO_LOW);
+        gpiod_line_set_value(m2_positive, GPIO_LOW);
+        gpiod_line_set_value(m3_positive, GPIO_LOW);
     }
 }
 
 void motor_backward(bool pressed)
 {
-    printf("%d", pressed);
-    my_line_set_value(left_positive,  GPIO_LOW);
-    my_line_set_value(right_positive, GPIO_LOW);
+    gpiod_line_set_value(m1_positive,  GPIO_LOW);
+    gpiod_line_set_value(m4_positive,  GPIO_LOW);
+    gpiod_line_set_value(m2_positive, GPIO_LOW);
+    gpiod_line_set_value(m3_positive, GPIO_LOW);
     if(pressed) {
-        my_line_set_value(left_negative,  GPIO_HIGH);
-        my_line_set_value(right_negative, GPIO_HIGH);
+        gpiod_line_set_value(m1_negative,  GPIO_HIGH);
+        gpiod_line_set_value(m4_negative,  GPIO_HIGH);
+        gpiod_line_set_value(m2_negative, GPIO_HIGH);
+        gpiod_line_set_value(m3_negative, GPIO_HIGH);
     } else {
-        my_line_set_value(left_negative,  GPIO_LOW);
-        my_line_set_value(right_negative, GPIO_LOW);
+        gpiod_line_set_value(m1_negative,  GPIO_LOW);
+        gpiod_line_set_value(m4_negative,  GPIO_LOW);
+        gpiod_line_set_value(m2_negative, GPIO_LOW);
+        gpiod_line_set_value(m3_negative, GPIO_LOW);
     }
 }
 
 void motor_left(bool pressed)
 {
-    printf("%d", pressed);
-    my_line_set_value(left_negative,  GPIO_LOW);
-    my_line_set_value(right_positive, GPIO_LOW);
+    gpiod_line_set_value(m1_negative,  GPIO_LOW);
+    gpiod_line_set_value(m4_negative,  GPIO_LOW);
+    gpiod_line_set_value(m2_positive, GPIO_LOW);
+    gpiod_line_set_value(m3_positive, GPIO_LOW);
     if(pressed) {
-        my_line_set_value(left_positive,  GPIO_HIGH);
-        my_line_set_value(right_negative, GPIO_HIGH);
+        gpiod_line_set_value(m1_positive,  GPIO_HIGH);
+        gpiod_line_set_value(m4_positive,  GPIO_HIGH);
+        gpiod_line_set_value(m2_negative, GPIO_HIGH);
+        gpiod_line_set_value(m3_negative, GPIO_HIGH);
     } else {
-        my_line_set_value(left_positive,  GPIO_LOW);
-        my_line_set_value(right_negative, GPIO_LOW);
+        gpiod_line_set_value(m1_positive,  GPIO_LOW);
+        gpiod_line_set_value(m4_positive,  GPIO_LOW);
+        gpiod_line_set_value(m2_negative, GPIO_LOW);
+        gpiod_line_set_value(m3_negative, GPIO_LOW);
     }
 }
 
 void motor_right(bool pressed)
 {
-    printf("%d", pressed);
-    my_line_set_value(left_positive,  GPIO_LOW);
-    my_line_set_value(right_negative, GPIO_LOW);
+    gpiod_line_set_value(m1_positive,  GPIO_LOW);
+    gpiod_line_set_value(m4_positive,  GPIO_LOW);
+    gpiod_line_set_value(m2_negative, GPIO_LOW);
+    gpiod_line_set_value(m3_negative, GPIO_LOW);
     if(pressed) {
-        my_line_set_value(left_negative,  GPIO_HIGH);
-        my_line_set_value(right_positive, GPIO_HIGH);
+        gpiod_line_set_value(m1_negative,  GPIO_HIGH);
+        gpiod_line_set_value(m4_negative,  GPIO_HIGH);
+        gpiod_line_set_value(m2_positive, GPIO_HIGH);
+        gpiod_line_set_value(m3_positive, GPIO_HIGH);
     } else {
-        my_line_set_value(left_negative,  GPIO_LOW);
-        my_line_set_value(right_positive, GPIO_LOW);
+        gpiod_line_set_value(m1_negative,  GPIO_LOW);
+        gpiod_line_set_value(m4_negative,  GPIO_LOW);
+        gpiod_line_set_value(m2_positive, GPIO_LOW);
+        gpiod_line_set_value(m3_positive, GPIO_LOW);
     }
 }
