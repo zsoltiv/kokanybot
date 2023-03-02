@@ -13,9 +13,9 @@
 #include "cmd.h"
 #include "input.h"
 
-struct libinput_interface linterface;
-struct libinput *lctx;
-struct udev *uctx;
+static struct libinput_interface linterface;
+static struct libinput *lctx;
+static struct udev *uctx;
 
 static int get_key_bind_index(uint32_t key)
 {
@@ -63,9 +63,8 @@ void input_close(void)
 
 void input_receive_input(void)
 {
-    int fd = libinput_get_fd(lctx);
     struct pollfd pfd = {
-        .fd = fd,
+        .fd = libinput_get_fd(lctx),
         .events = POLLIN,
         .revents = 0,
     };
