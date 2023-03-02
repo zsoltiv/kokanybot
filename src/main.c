@@ -19,6 +19,7 @@ struct key_bind key_binds[4] = {
 
 int main(void)
 {
+    gpio_init();
     input_init();
     while(1) { // robot loop
         input_receive_input();

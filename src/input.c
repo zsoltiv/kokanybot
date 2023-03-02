@@ -63,25 +63,36 @@ void input_close(void)
 
 void input_receive_input(void)
 {
+    int fd = libinput_get_fd(lctx);
     struct pollfd pfd = {
-        .fd = libinput_get_fd(lctx),
+        .fd = fd,
         .events = POLLIN,
         .revents = 0,
     };
 
     poll(&pfd, 1, -1);
-    if(libinput_dispatch(lctx) < 0)
+    if(libinput_dispatch(lctx) < 0) {
         fprintf(stderr, "libinput_dispatch() failed\n");
+        return;
+    }
 
     struct libinput_event *ev = libinput_get_event(lctx);
+    if(!ev) {
+        fprintf(stderr, "ev is NULL\n");
+        goto destroy;
+    }
+    printf("van event\n");
     if(libinput_event_get_type(ev) == LIBINPUT_EVENT_KEYBOARD_KEY) {
         struct libinput_event_keyboard *kbev = libinput_event_get_keyboard_event(ev);
         uint32_t keycode = libinput_event_keyboard_get_key(kbev);
         int state_idx = get_key_bind_index(keycode);
         if(state_idx > -1) {
             enum libinput_key_state lkey_bind = libinput_event_keyboard_get_key_state(kbev);
-            key_binds[state_idx].func(LIBINPUT_KEY_STATE_PRESSED ? true : false);
+            key_binds[state_idx].func(lkey_bind == LIBINPUT_KEY_STATE_PRESSED ? true : false);
+        } else {
+            fprintf(stderr, "rossz gomb\n");
         }
     }
+destroy:
     libinput_event_destroy(ev);
 }
