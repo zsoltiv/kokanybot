@@ -10,7 +10,6 @@
 
 #include <libinput.h>
 
-#include "cmd.h"
 #include "input.h"
 
 static struct libinput_interface linterface;
