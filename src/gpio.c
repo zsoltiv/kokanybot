@@ -79,7 +79,7 @@ void gpio_cleanup(void)
     gpiod_line_set_value(m2_en,       GPIO_LOW);
 
     if(m1_en) gpiod_line_release(m1_en);
-    if(m1_positive) gpiod_line_release(left_positive);
+    if(m1_positive) gpiod_line_release(m1_positive);
     if(m1_negative) gpiod_line_release(m1_negative);
     if(m2_en) gpiod_line_release(m2_en);
     if(m2_positive) gpiod_line_release(m2_positive);
