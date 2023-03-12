@@ -52,10 +52,22 @@ extern "C" void do_image_recognition(bool unused)
 extern "C" int img_thread(void *arg)
 {
     int ret = thrd_success;
+    cv::VideoCapture cap("/dev/video0"); // FIXME rendes path
+    cv::Mat frame;
+
     if((ret = mtx_init(&img_mtx, mtx_plain)) != thrd_success)
         goto finish;
     if((ret = cnd_init(&img_cnd)) != thrd_success)
         goto finish;
+
+    if(!cap.isOpened()) {
+        ret = thrd_error;
+        goto finish;
+    }
+    if(!cap.set(cv::CAP_PROP_FRAME_WIDTH, 1280))
+        fprintf(stderr, "CAP_PROP_FRAME_WIDTH unsupported\n");
+    if(!cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720))
+        fprintf(stderr, "CAP_PROP_FRAME_HEIGHT unsupported\n");
 
     while(true) {
         mtx_lock(&img_mtx);
@@ -63,25 +75,28 @@ extern "C" int img_thread(void *arg)
         while(!img_need_doing)
             cnd_wait(&img_cnd, &img_mtx);
 
-        cv::VideoCapture cap("electricity_sample.webp");
-        cv::Mat sample;
-        cap.read(sample);
 
-        std::cout << average_color(sample) << std::endl;
+        bool ret = cap.read(frame);
+        //cv::VideoCapture cap("electricity_sample.webp");
+        //cv::Mat sample;
+        //cap.read(sample);
 
-        cap.open("electricity_sample.webp");
-        cv::Mat testData;
-        cap.read(testData);
+        //std::cout << average_color(sample) << std::endl;
 
-        cap.release();
+        //cap.open("electricity_sample.webp");
+        //cv::Mat testData;
+        //cap.read(testData);
 
-        cv::Vec3i avg1 = average_color(sample);
-        cv::Vec3i avg2 = average_color(testData);
-        std::cout << color_distance_percent(avg1, avg2) << std::endl;
+        //cap.release();
 
-        mtx_unlock(&img_mtx);
+        //cv::Vec3i avg1 = average_color(sample);
+        //cv::Vec3i avg2 = average_color(testData);
+        //std::cout << color_distance_percent(avg1, avg2) << std::endl;
+
+        //mtx_unlock(&img_mtx);
     }
 
 finish:
+    cap.release();
     return ret;
 }
