@@ -1,0 +1,8 @@
+[Unit]
+Description=Kokanybot program
+
+[Service]
+ExecStart=/usr/bin/kokanybot
+
+[Install]
+WantedBy=multi-user.target
