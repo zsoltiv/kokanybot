@@ -52,7 +52,7 @@ extern "C" void do_image_recognition(bool unused)
 extern "C" int img_thread(void *arg)
 {
     int ret = thrd_success;
-    cv::VideoCapture cap("/dev/video0"); // FIXME rendes path
+    cv::VideoCapture cap("/dev/video0", cv::CAP_FFMPEG);
     cv::Mat frame;
 
     if((ret = mtx_init(&img_mtx, mtx_plain)) != thrd_success)
