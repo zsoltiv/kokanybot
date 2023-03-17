@@ -170,3 +170,15 @@ void motor_right(bool pressed)
         gpiod_line_set_value(m3_positive, GPIO_LOW);
     }
 }
+
+void motor_stop(bool pressed)
+{
+    gpiod_line_set_value(m1_negative, GPIO_LOW);
+    gpiod_line_set_value(m1_positive, GPIO_LOW);
+    gpiod_line_set_value(m2_negative, GPIO_LOW);
+    gpiod_line_set_value(m2_positive, GPIO_LOW);
+    gpiod_line_set_value(m3_negative, GPIO_LOW);
+    gpiod_line_set_value(m3_positive, GPIO_LOW);
+    gpiod_line_set_value(m4_negative, GPIO_LOW);
+    gpiod_line_set_value(m4_positive, GPIO_LOW);
+}

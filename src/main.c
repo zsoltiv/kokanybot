@@ -11,12 +11,13 @@
 #include "gpio.h"
 #include "input.h"
 
-struct key_bind key_binds[5] = {
+struct key_bind key_binds[6] = {
     { .key =     KEY_W, .func =        motor_forward },
     { .key =     KEY_A, .func =           motor_left },
     { .key =     KEY_S, .func =       motor_backward },
     { .key =     KEY_D, .func =          motor_right },
     { .key = KEY_SPACE, .func = do_image_recognition },
+    { .key =     KEY_R, .func =           motor_stop },
 };
 
 int main(void)
@@ -26,6 +27,7 @@ int main(void)
     if(thrd_create(&img_thrd, img_thread, NULL) != thrd_success) {
         fprintf(stderr, "thrd_create elbukott\n");
     }
+    printf("Up and running\n");
     while(1) { // robot loop
         input_receive_input();
     }

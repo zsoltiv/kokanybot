@@ -28,11 +28,11 @@ extern struct gpiod_line *right_en,
 void gpio_init(void);
 void gpio_cleanup(void);
 
-void motor_stop(void);
 void motor_forward(bool pressed);
 void motor_backward(bool pressed);
 void motor_left(bool pressed);
 void motor_right(bool pressed);
+void motor_stop(bool pressed);
 
 #ifdef __cplusplus
 }
