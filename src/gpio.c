@@ -69,8 +69,10 @@ void gpio_init(void)
     m4_positive  = motorpin_init(GPIO13);
     m4_negative  = motorpin_init(GPIO18);
 
-    gpiod_line_set_value(m1_en,        GPIO_HIGH);
-    gpiod_line_set_value(m2_en,       GPIO_HIGH);
+    gpiod_line_set_value(m1_en, GPIO_HIGH);
+    gpiod_line_set_value(m2_en, GPIO_HIGH);
+    gpiod_line_set_value(m3_en, GPIO_HIGH);
+    gpiod_line_set_value(m4_en, GPIO_HIGH);
 }
 
 void gpio_cleanup(void)
