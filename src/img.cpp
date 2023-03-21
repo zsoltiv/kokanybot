@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <ctime>
+#include <dirent.h>
 
 #include <opencv4/opencv2/core.hpp>
 #include <opencv4/opencv2/videoio.hpp>
@@ -11,11 +12,38 @@
 #include <opencv4/opencv2/highgui.hpp>
 #include <threads.h>
 
+/* `ls -1 hazmat | wc -l` */
+#define REFERENCE_COUNT 15
+#define REFERENCE_DIR "/home/pi/kokanybot/hazmat"
+
 extern "C" {
     thrd_t img_thrd;
     cnd_t   img_cnd;
     mtx_t   img_mtx;
     bool img_need_doing = false;
+}
+
+cv::Mat references[REFERENCE_COUNT];
+
+static void load_references(void)
+{
+    cv::VideoCapture cap;
+    DIR *dir = opendir(REFERENCE_DIR);
+    if(!dir)
+        perror("opendir");
+    struct dirent *e = NULL;
+    int i = 0;
+    while((e = readdir(dir))) {
+        if(e->d_type != DT_REG)
+            continue;
+        std::string filepath(REFERENCE_DIR);
+        filepath += "/";
+        filepath += e->d_name;
+        cap.open(filepath);
+        cap.retrieve(references[i++]);
+        cap.release();
+    }
+    closedir(dir);
 }
 
 static cv::Vec3i average_color(cv::Mat& img)
@@ -72,10 +100,12 @@ extern "C" int img_thread(void *arg)
         ret = thrd_error;
         goto finish;
     }
+    load_references();
     if(!cap.set(cv::CAP_PROP_FRAME_WIDTH, 1280))
         fprintf(stderr, "CAP_PROP_FRAME_WIDTH unsupported\n");
     if(!cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720))
         fprintf(stderr, "CAP_PROP_FRAME_HEIGHT unsupported\n");
+
 
     while(true) {
         std::cerr << "img_loop\n";
