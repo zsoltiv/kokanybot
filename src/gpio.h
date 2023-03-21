@@ -34,6 +34,10 @@ void motor_left(bool pressed);
 void motor_right(bool pressed);
 void motor_stop(bool pressed);
 
+void led_red(void);
+void led_green(void);
+void led_blue(void);
+
 #ifdef __cplusplus
 }
 #endif
