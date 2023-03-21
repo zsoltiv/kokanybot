@@ -1,6 +1,9 @@
 #include "img.h"
 
+#include "gpio.h"
+
 #include <iostream>
+#include <ctime>
 
 #include <opencv4/opencv2/core.hpp>
 #include <opencv4/opencv2/videoio.hpp>
@@ -52,15 +55,20 @@ extern "C" void do_image_recognition(bool unused)
 extern "C" int img_thread(void *arg)
 {
     int ret = thrd_success;
-    cv::VideoCapture cap("/dev/video0", cv::CAP_FFMPEG);
-    cv::Mat frame;
+    //cv::VideoCapture cap("/dev/video0", cv::CAP_FFMPEG);
+    cv::VideoCapture cap(0);
+    cv::Mat frame1, frame2;
 
-    if((ret = mtx_init(&img_mtx, mtx_plain)) != thrd_success)
+    if((ret = mtx_init(&img_mtx, mtx_plain)) != thrd_success) {
+        std::cerr << "mtx_init bukott\n";
         goto finish;
-    if((ret = cnd_init(&img_cnd)) != thrd_success)
+    }
+    if((ret = cnd_init(&img_cnd)) != thrd_success) {
+        std::cerr << "cnd_init bukott\n";
         goto finish;
-
+    }
     if(!cap.isOpened()) {
+        std::cerr << "/dev/video0 megnyitasa bukott\n";
         ret = thrd_error;
         goto finish;
     }
@@ -70,13 +78,33 @@ extern "C" int img_thread(void *arg)
         fprintf(stderr, "CAP_PROP_FRAME_HEIGHT unsupported\n");
 
     while(true) {
+        std::cerr << "img_loop\n";
         mtx_lock(&img_mtx);
 
         while(!img_need_doing)
             cnd_wait(&img_cnd, &img_mtx);
 
+        std::cerr << "RECOGNITION\n";
 
-        bool ret = cap.read(frame);
+        bool ret = cap.read(frame1);
+        ret = cap.read(frame2);
+        std::cerr << "fotozasok: " << ret << '\n';
+
+        cv::Vec3i avg1 = average_color(frame1);
+        cv::Vec3i avg2 = average_color(frame2);
+        int color_distance = color_distance_percent(avg1, avg2);
+        if(color_distance > 50)
+            led_green();
+        else
+            led_red();
+        std::cout << color_distance << '\n';
+        timespec one_sec;
+        one_sec.tv_sec = 1;
+        thrd_sleep(&one_sec, NULL);
+
+        led_blue(); // WARN ehhez kell mutex
+        img_need_doing = false;
+        mtx_unlock(&img_mtx);
         //cv::VideoCapture cap("electricity_sample.webp");
         //cv::Mat sample;
         //cap.read(sample);
@@ -91,12 +119,10 @@ extern "C" int img_thread(void *arg)
 
         //cv::Vec3i avg1 = average_color(sample);
         //cv::Vec3i avg2 = average_color(testData);
-        //std::cout << color_distance_percent(avg1, avg2) << std::endl;
-
-        //mtx_unlock(&img_mtx);
     }
 
 finish:
+    std::cerr << "img_thread kilep\n";
     cap.release();
     return ret;
 }
