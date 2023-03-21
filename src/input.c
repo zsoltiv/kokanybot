@@ -52,6 +52,11 @@ void input_init(void)
         fprintf(stderr, "libinput_udev_create_context() nem sikerult\n");
     if(libinput_udev_assign_seat(lctx, "seat0") < 0)
         fprintf(stderr, "libinput_udev_assign_seat() hibaba utkozott\n");
+
+    libinput_dispatch(lctx);
+    struct libinput_event *ev = NULL;
+    while((ev = libinput_get_event(lctx)))
+        libinput_event_destroy(ev);
 }
 
 void input_close(void)
