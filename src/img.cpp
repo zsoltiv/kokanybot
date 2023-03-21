@@ -24,27 +24,7 @@ extern "C" {
 }
 
 cv::Mat references[REFERENCE_COUNT];
-
-static void load_references(void)
-{
-    cv::VideoCapture cap;
-    DIR *dir = opendir(REFERENCE_DIR);
-    if(!dir)
-        perror("opendir");
-    struct dirent *e = NULL;
-    int i = 0;
-    while((e = readdir(dir))) {
-        if(e->d_type != DT_REG)
-            continue;
-        std::string filepath(REFERENCE_DIR);
-        filepath += "/";
-        filepath += e->d_name;
-        cap.open(filepath);
-        cap.retrieve(references[i++]);
-        cap.release();
-    }
-    closedir(dir);
-}
+cv::Vec3i reference_average_colors[REFERENCE_COUNT];
 
 static cv::Vec3i average_color(cv::Mat& img)
 {
@@ -63,6 +43,29 @@ static cv::Vec3i average_color(cv::Mat& img)
     cv::Vec3i avg((bSum / pixels), (gSum / pixels), (rSum / pixels));
 
     return avg;
+}
+
+static void load_references(void)
+{
+    cv::VideoCapture cap;
+    DIR *dir = opendir(REFERENCE_DIR);
+    if(!dir)
+        perror("opendir");
+    struct dirent *e = NULL;
+    int i = 0;
+    while((e = readdir(dir))) {
+        if(e->d_type != DT_REG)
+            continue;
+        std::string filepath(REFERENCE_DIR);
+        filepath += "/";
+        filepath += e->d_name;
+        cap.open(filepath);
+        cap.retrieve(references[i]);
+        reference_average_colors[i] = average_color(references[i]);
+        cap.release();
+        i++;
+    }
+    closedir(dir);
 }
 
 static int color_distance_percent(cv::Vec3i& avgA, cv::Vec3i& avgB)
@@ -85,7 +88,7 @@ extern "C" int img_thread(void *arg)
     int ret = thrd_success;
     //cv::VideoCapture cap("/dev/video0", cv::CAP_FFMPEG);
     cv::VideoCapture cap(0);
-    cv::Mat frame1, frame2;
+    cv::Mat frame;
 
     if((ret = mtx_init(&img_mtx, mtx_plain)) != thrd_success) {
         std::cerr << "mtx_init bukott\n";
@@ -116,18 +119,23 @@ extern "C" int img_thread(void *arg)
 
         std::cerr << "RECOGNITION\n";
 
-        bool ret = cap.read(frame1);
-        ret = cap.read(frame2);
+        bool ret = cap.read(frame);
         std::cerr << "fotozasok: " << ret << '\n';
 
-        cv::Vec3i avg1 = average_color(frame1);
-        cv::Vec3i avg2 = average_color(frame2);
-        int color_distance = color_distance_percent(avg1, avg2);
-        if(color_distance > 50)
+        cv::Vec3i avg = average_color(frame);
+        bool match = false;
+        for(int i = 0; i < REFERENCE_COUNT; i++) {
+            int color_distance = color_distance_percent(avg, reference_average_colors[i]);
+            std::cout << color_distance << '\n';
+            if(color_distance > 70) {
+                match = true;
+                break;
+            }
+        }
+        if(match)
             led_green();
         else
             led_red();
-        std::cout << color_distance << '\n';
         timespec one_sec;
         one_sec.tv_sec = 1;
         thrd_sleep(&one_sec, NULL);
@@ -135,20 +143,6 @@ extern "C" int img_thread(void *arg)
         led_blue(); // WARN ehhez kell mutex
         img_need_doing = false;
         mtx_unlock(&img_mtx);
-        //cv::VideoCapture cap("electricity_sample.webp");
-        //cv::Mat sample;
-        //cap.read(sample);
-
-        //std::cout << average_color(sample) << std::endl;
-
-        //cap.open("electricity_sample.webp");
-        //cv::Mat testData;
-        //cap.read(testData);
-
-        //cap.release();
-
-        //cv::Vec3i avg1 = average_color(sample);
-        //cv::Vec3i avg2 = average_color(testData);
     }
 
 finish:
