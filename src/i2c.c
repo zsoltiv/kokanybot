@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <time.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <i2c/smbus.h>
@@ -57,7 +58,7 @@ void i2c_init(void)
 
     i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, MODE1_SLEEP);
     i2c_smbus_write_byte_data(i2c, PCA9685_PRESCALE, calculate_prescale(50));
-    usleep(500);
+    nanosleep(&(struct timespec) {.tv_nsec = 500000}, NULL);
     i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, 0x1);
 }
 
