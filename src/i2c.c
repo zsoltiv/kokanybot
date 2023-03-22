@@ -1,4 +1,6 @@
+#define _XOPEN_SOURCE 700
 #include <unistd.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -14,13 +16,19 @@
  */
 
 #define PCA9685_ADDR 0x40
+#define PCA9685_MODE1 0x0
+#define PCA9685_PRESCALE 0xFE
+// 25Mhz
+#define PCA9685_OSCILLIATOR 25000000u
+#define MODE1_SLEEP (1u << 3)
+#define MODE1_RESTART (1u << 7)
 
 int i2c;
 
 static inline uint8_t servo(int n)
 {
-    // 0x6-nal kezdodnek, 4 octet kulonbseg van a LEDn_ON_LOW-ok kozott
-    return (uint8_t) (n * 4 + 6);
+    // 0x06-nal kezdodnek, 0x04 octet kulonbseg van a LEDn_ON_LOW-ok kozott
+    return (uint8_t) (0x06 + n * 0x04);
 }
 
 static inline uint16_t deg_to_pwm(int deg)
@@ -28,6 +36,11 @@ static inline uint16_t deg_to_pwm(int deg)
     // [0;359]-et konvertal a [0;4095] tartomanyba
     //return (deg - 0) * (4095 - 0) / (359 - 0) + 0;
     return (uint16_t) (deg * 4095u / 359u);
+}
+
+static uint8_t calculate_prescale(int freq)
+{
+    return (uint8_t) (round(PCA9685_OSCILLIATOR / (freq * 4096)) - 1);
 }
 
 void i2c_init(void)
@@ -42,6 +55,13 @@ void i2c_init(void)
         perror("ioctl()");
         i2c_cleanup();
     }
+
+    i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, MODE1_SLEEP);
+    uint8_t prescale = calculate_prescale(50);
+    printf("PRESCALE\t%u\n", prescale);
+    i2c_smbus_write_byte_data(i2c, PCA9685_PRESCALE, prescale);
+    i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, 0x0);
+    usleep(5000);
 }
 
 void i2c_cleanup(void)

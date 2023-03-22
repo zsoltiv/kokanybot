@@ -23,13 +23,17 @@ struct key_bind key_binds[6] = {
 int main(void)
 {
     gpio_init();
+    i2c_init();
     input_init();
     if(thrd_create(&img_thrd, img_thread, NULL) != thrd_success) {
         fprintf(stderr, "thrd_create elbukott\n");
     }
     printf("Up and running\n");
     while(1) { // robot loop
-        input_receive_input();
+        //input_receive_input();
+        for(int i = 0; i < 360; i++) {
+            i2c_servo_set(0, i);
+        }
     }
 
     thrd_join(img_thrd, NULL);
