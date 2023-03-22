@@ -9,7 +9,7 @@
 #include <opencv4/opencv2/core.hpp>
 #include <opencv4/opencv2/videoio.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
-#include <opencv4/opencv2/highgui.hpp>
+#include <opencv4/opencv2/imgcodecs.hpp>
 #include <threads.h>
 
 /* `ls -1 hazmat | wc -l` */
@@ -25,6 +25,11 @@ extern "C" {
 
 cv::Mat references[REFERENCE_COUNT];
 cv::Vec3i reference_average_colors[REFERENCE_COUNT];
+
+static void print_mat_details(cv::Mat& m)
+{
+    std::cout << m.channels() << " channel\n";
+}
 
 static cv::Vec3i average_color(cv::Mat& img)
 {
@@ -47,7 +52,6 @@ static cv::Vec3i average_color(cv::Mat& img)
 
 static void load_references(void)
 {
-    cv::VideoCapture cap;
     DIR *dir = opendir(REFERENCE_DIR);
     if(!dir)
         perror("opendir");
@@ -59,10 +63,9 @@ static void load_references(void)
         std::string filepath(REFERENCE_DIR);
         filepath += "/";
         filepath += e->d_name;
-        cap.open(filepath);
-        cap.retrieve(references[i]);
+        references[i] = cv::imread(filepath, cv::IMREAD_COLOR);
         reference_average_colors[i] = average_color(references[i]);
-        cap.release();
+        print_mat_details(references[i]);
         i++;
     }
     closedir(dir);
@@ -126,8 +129,9 @@ extern "C" int img_thread(void *arg)
         bool match = false;
         for(int i = 0; i < REFERENCE_COUNT; i++) {
             int color_distance = color_distance_percent(avg, reference_average_colors[i]);
-            std::cout << color_distance << '\n';
+            std::cout << "color_distance: " << color_distance << '\n';
             if(color_distance > 70) {
+                std::cout << "matched " << i << '\n';
                 match = true;
                 break;
             }
