@@ -1,4 +1,3 @@
-#define _XOPEN_SOURCE 700
 #include <unistd.h>
 #include <math.h>
 #include <stdio.h>
@@ -57,11 +56,9 @@ void i2c_init(void)
     }
 
     i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, MODE1_SLEEP);
-    uint8_t prescale = calculate_prescale(50);
-    printf("PRESCALE\t%u\n", prescale);
-    i2c_smbus_write_byte_data(i2c, PCA9685_PRESCALE, prescale);
-    i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, 0x0);
-    usleep(5000);
+    i2c_smbus_write_byte_data(i2c, PCA9685_PRESCALE, calculate_prescale(50));
+    usleep(500);
+    i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, 0x1);
 }
 
 void i2c_cleanup(void)
@@ -76,6 +73,11 @@ void i2c_servo_set(int n, int degrees)
     if(degrees < 0 || degrees > 359)
         return;
 
-    if(i2c_smbus_write_word_data(i2c, servo(n), deg_to_pwm(degrees)) < 0)
+    uint8_t s = servo(n);
+    uint16_t pwm = deg_to_pwm(degrees);
+    if(i2c_smbus_write_byte_data(i2c, servo(n) + 0, pwm & 0xFF) < 0 ||
+       i2c_smbus_write_byte_data(i2c, servo(n) + 1, pwm >> 8) < 0 ||
+       i2c_smbus_write_byte_data(i2c, servo(n) + 2, 0) < 0 ||
+       i2c_smbus_write_byte_data(i2c, servo(n) + 3, 0) < 0)
         perror("i2c_smbus_write_word_data()");
 }
