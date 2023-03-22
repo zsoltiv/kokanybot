@@ -2,7 +2,7 @@ CC = cc
 CXX = c++
 CXXINC = `pkg-config --cflags opencv4`
 STDC = -std=c11
-CFLAGS = -g -O0
+CFLAGS = -g -D_XOPEN_SOURCE=700 -O0
 CXXFLAGS = $(CXXINC) $(CFLAGS)
 LDFLAGS = -li2c -lpthread `pkg-config --libs opencv4 libgpiod libudev libinput`
 
