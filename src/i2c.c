@@ -33,9 +33,9 @@ static inline uint8_t servo(int n)
 
 static inline uint16_t deg_to_pwm(int deg)
 {
-    // [0;359]-et konvertal a [0;4095] tartomanyba
+    // [0;179]-et konvertal a [0;4095] tartomanyba
     //return (deg - 0) * (4095 - 0) / (359 - 0) + 0;
-    return (uint16_t) (deg * 4095u / 359u);
+    return (uint16_t) (deg * 4095u / 179u);
 }
 
 static uint8_t calculate_prescale(int freq)
@@ -71,11 +71,12 @@ void i2c_servo_set(int n, int degrees)
 {
     if(n < 0 || n > 15)
         return;
-    if(degrees < 0 || degrees > 359)
+    if(degrees < 0 || degrees > 179)
         return;
 
     uint8_t s = servo(n);
     uint16_t pwm = deg_to_pwm(degrees);
+    printf("%d deg\t%u PWM\n", degrees, pwm);
     if(i2c_smbus_write_byte_data(i2c, servo(n) + 0, pwm & 0xFF) < 0 ||
        i2c_smbus_write_byte_data(i2c, servo(n) + 1, pwm >> 8) < 0 ||
        i2c_smbus_write_byte_data(i2c, servo(n) + 2, 0) < 0 ||
