@@ -53,6 +53,9 @@ void input_init(void)
     if(libinput_udev_assign_seat(lctx, "seat0") < 0)
         fprintf(stderr, "libinput_udev_assign_seat() hibaba utkozott\n");
 
+    for(int i = 0; i < sizeof(key_binds) / sizeof(key_binds[0]); i++)
+        key_binds[i].prev_state = LIBINPUT_KEY_STATE_RELEASED;
+
     libinput_dispatch(lctx);
     struct libinput_event *ev = NULL;
     while((ev = libinput_get_event(lctx)))
@@ -84,14 +87,17 @@ void input_receive_input(void)
         fprintf(stderr, "ev is NULL\n");
         goto destroy;
     }
-    printf("van event\n");
     if(libinput_event_get_type(ev) == LIBINPUT_EVENT_KEYBOARD_KEY) {
         struct libinput_event_keyboard *kbev = libinput_event_get_keyboard_event(ev);
         uint32_t keycode = libinput_event_keyboard_get_key(kbev);
         int state_idx = get_key_bind_index(keycode);
         if(state_idx > -1) {
-            enum libinput_key_state lkey_bind = libinput_event_keyboard_get_key_state(kbev);
-            key_binds[state_idx].func(lkey_bind == LIBINPUT_KEY_STATE_PRESSED ? true : false);
+            enum libinput_key_state key_state = libinput_event_keyboard_get_key_state(kbev);
+            if(key_state != key_binds[state_idx].prev_state) {
+                puts("state changed");
+                key_binds[state_idx].func(key_state == LIBINPUT_KEY_STATE_PRESSED ? true : false);
+                key_binds[state_idx].prev_state = key_state;
+            }
         } else {
             fprintf(stderr, "rossz gomb\n");
         }
