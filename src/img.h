@@ -12,7 +12,7 @@ extern "C" {
 #include <stdbool.h>
 #include <threads.h>
 
-void do_image_recognition(bool unused);
+void do_image_recognition(bool should_do);
 int img_thread(void *arg);
 
 extern thrd_t img_thrd;

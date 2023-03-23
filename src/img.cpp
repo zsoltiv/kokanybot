@@ -78,10 +78,10 @@ static int color_distance_percent(cv::Vec3i& avgA, cv::Vec3i& avgB)
     return (percents.val[0] + percents.val[1] + percents.val[2]) / 3;
 }
 
-extern "C" void do_image_recognition(bool unused)
+extern "C" void do_image_recognition(bool should_do)
 {
     mtx_lock(&img_mtx);
-    img_need_doing = true;
+    img_need_doing = should_do;
     cnd_signal(&img_cnd);
     mtx_unlock(&img_mtx);
 }
