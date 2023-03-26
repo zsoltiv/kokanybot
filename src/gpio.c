@@ -25,7 +25,9 @@ struct gpiod_line        *m1_en,
                          *m4_en,
                    *m4_positive,
                    *m4_negative;
-struct pwm rgb[3];
+struct pwm *r,
+           *g,
+           *b;
 
 // debugra
 static int my_line_set_value(struct gpiod_line *line, int value)
@@ -75,9 +77,9 @@ void gpio_init(void)
     m4_positive  = motorpin_init(GPIO13);
     m4_negative  = motorpin_init(GPIO18);
 
-    pwm_init(&rgb[0], chip, SPI_SCLK, PWM_FREQUENCY, PWM_DUTY_MAX, 0);
-    pwm_init(&rgb[1], chip, SPI_MISO, PWM_FREQUENCY, PWM_DUTY_MAX, 0);
-    pwm_init(&rgb[2], chip, SPI_MOSI, PWM_FREQUENCY, PWM_DUTY_MAX, 0);
+    r = pwm_init(chip, SPI_SCLK, PWM_FREQUENCY, PWM_DUTY_MAX, 0);
+    g = pwm_init(chip, SPI_MISO, PWM_FREQUENCY, PWM_DUTY_MAX, 0);
+    b = pwm_init(chip, SPI_MOSI, PWM_FREQUENCY, PWM_DUTY_MAX, 0);
 
     gpiod_line_set_value(m1_en, GPIO_HIGH);
     gpiod_line_set_value(m2_en, GPIO_HIGH);

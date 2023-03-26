@@ -10,21 +10,13 @@ extern "C" {
 #include <threads.h>
 #include <gpiod.h>
 
-struct pwm {
-    int frequency; // given in Hz
-    int duty_max; // maximum value for `duty_cycle`
-    int duty_cycle; 
-    thrd_t thread;
-    mtx_t lock;
-    struct gpiod_line *gpio;
-};
+struct pwm;
 
-void pwm_init(struct pwm *pwm,
-              struct gpiod_chip *chip,
-              unsigned int gpio,
-              int frequency,
-              int duty_max,
-              int duty_cycle);
+struct pwm *pwm_init(struct gpiod_chip *chip,
+                     unsigned int gpio,
+                     int frequency,
+                     int duty_max,
+                     int duty_cycle);
 
 /*
  * MUST be used to change the duty cycle

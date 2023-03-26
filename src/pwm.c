@@ -6,6 +6,15 @@
 
 #define ONESEC 1000000000L
 
+struct pwm {
+    int frequency; // given in Hz
+    int duty_max; // maximum value for `duty_cycle`
+    int duty_cycle; 
+    thrd_t thread;
+    mtx_t lock;
+    struct gpiod_line *gpio;
+};
+
 static int pwm_thread(void *arg)
 {
     struct pwm *pwm = (struct pwm *) arg;
@@ -29,20 +38,22 @@ static int pwm_thread(void *arg)
     return 0;
 }
 
-void pwm_init(struct pwm *pwm,
-              struct gpiod_chip *chip,
-              unsigned int gpio,
-              int frequency,
-              int duty_max,
-              int duty_cycle)
+struct pwm *pwm_init(struct gpiod_chip *chip,
+                     unsigned int gpio,
+                     int frequency,
+                     int duty_max,
+                     int duty_cycle)
 {
+    struct pwm *pwm = malloc(sizeof(struct pwm));
     pwm->duty_cycle = duty_cycle;
     pwm->duty_max = duty_max;
     pwm->frequency = frequency;
     thrd_create(&pwm->thread, pwm_thread, (void *) pwm);
     mtx_init(&pwm->lock, mtx_plain);
     pwm->gpio = gpiod_chip_get_line(chip, gpio);
+    return pwm;
 }
+
 void pwm_set_duty_cycle(struct pwm *pwm, int duty_cycle)
 {
     mtx_lock(&pwm->lock);

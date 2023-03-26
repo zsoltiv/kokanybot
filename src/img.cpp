@@ -81,9 +81,9 @@ static int color_distance_percent(cv::Vec3i& avgA, cv::Vec3i& avgB)
 
 static void rgb_reference_average_color(cv::Vec3i& ref_avg)
 {
-    pwm_set_duty_cycle(&rgb[0], ref_avg[0]);
-    pwm_set_duty_cycle(&rgb[1], ref_avg[1]);
-    pwm_set_duty_cycle(&rgb[2], ref_avg[2]);
+    pwm_set_duty_cycle(r, ref_avg[0]);
+    pwm_set_duty_cycle(g, ref_avg[1]);
+    pwm_set_duty_cycle(b, ref_avg[2]);
 }
 
 extern "C" void do_image_recognition(bool should_do)

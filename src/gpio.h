@@ -27,7 +27,9 @@ extern struct gpiod_line *right_en,
                   *right_positive,
                   *right_negative;
 
-extern struct pwm rgb[3];
+extern struct pwm *r,
+                  *g,
+                  *b;
 
 void gpio_init(void);
 void gpio_cleanup(void);
