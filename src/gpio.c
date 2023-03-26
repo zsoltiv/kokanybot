@@ -4,8 +4,13 @@
 #include <errno.h>
 #include <string.h>
 
-#include "gpio.h"
 #include "offsets.h"
+#include "pwm.h"
+#include "gpio.h"
+
+/* PWM constants used for RGB LED */
+#define PWM_FREQUENCY 100
+#define PWM_DUTY_MAX 255
 
 struct gpiod_chip           *chip;
 struct gpiod_line        *m1_en,
@@ -19,10 +24,8 @@ struct gpiod_line        *m1_en,
                    *m3_negative,
                          *m4_en,
                    *m4_positive,
-                   *m4_negative,
-                   *r_led,
-                   *g_led,
-                   *b_led;
+                   *m4_negative;
+struct pwm rgb[3];
 
 // debugra
 static int my_line_set_value(struct gpiod_line *line, int value)
@@ -72,18 +75,14 @@ void gpio_init(void)
     m4_positive  = motorpin_init(GPIO13);
     m4_negative  = motorpin_init(GPIO18);
 
-    r_led = motorpin_init(SPI_SCLK);
-    g_led = motorpin_init(SPI_MISO);
-    b_led = motorpin_init(SPI_MOSI);
+    pwm_init(&rgb[0], chip, SPI_SCLK, PWM_FREQUENCY, PWM_DUTY_MAX, 0);
+    pwm_init(&rgb[1], chip, SPI_MISO, PWM_FREQUENCY, PWM_DUTY_MAX, 0);
+    pwm_init(&rgb[2], chip, SPI_MOSI, PWM_FREQUENCY, PWM_DUTY_MAX, 0);
 
     gpiod_line_set_value(m1_en, GPIO_HIGH);
     gpiod_line_set_value(m2_en, GPIO_HIGH);
     gpiod_line_set_value(m3_en, GPIO_HIGH);
     gpiod_line_set_value(m4_en, GPIO_HIGH);
-
-    gpiod_line_set_value(r_led, GPIO_LOW);
-    gpiod_line_set_value(g_led, GPIO_LOW);
-    gpiod_line_set_value(b_led, GPIO_LOW);
 }
 
 void gpio_cleanup(void)
@@ -192,23 +191,4 @@ void motor_stop(bool pressed)
     gpiod_line_set_value(m3_positive, GPIO_LOW);
     gpiod_line_set_value(m4_negative, GPIO_LOW);
     gpiod_line_set_value(m4_positive, GPIO_LOW);
-}
-
-void led_red(void)
-{
-    gpiod_line_set_value(r_led, GPIO_HIGH);
-    gpiod_line_set_value(g_led, GPIO_LOW);
-    gpiod_line_set_value(b_led, GPIO_LOW);
-}
-void led_green(void)
-{
-    gpiod_line_set_value(r_led, GPIO_LOW);
-    gpiod_line_set_value(g_led, GPIO_HIGH);
-    gpiod_line_set_value(b_led, GPIO_LOW);
-}
-void led_blue(void)
-{
-    gpiod_line_set_value(r_led, GPIO_LOW);
-    gpiod_line_set_value(g_led, GPIO_LOW);
-    gpiod_line_set_value(b_led, GPIO_HIGH);
 }

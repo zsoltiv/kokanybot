@@ -1,6 +1,7 @@
 #include "img.h"
 
 #include "gpio.h"
+#include "pwm.h"
 
 #include <iostream>
 #include <ctime>
@@ -78,6 +79,13 @@ static int color_distance_percent(cv::Vec3i& avgA, cv::Vec3i& avgB)
     return (percents.val[0] + percents.val[1] + percents.val[2]) / 3;
 }
 
+static void rgb_reference_average_color(cv::Vec3i& ref_avg)
+{
+    pwm_set_duty_cycle(&rgb[0], ref_avg[0]);
+    pwm_set_duty_cycle(&rgb[1], ref_avg[1]);
+    pwm_set_duty_cycle(&rgb[2], ref_avg[2]);
+}
+
 extern "C" void do_image_recognition(bool should_do)
 {
     mtx_lock(&img_mtx);
@@ -126,8 +134,10 @@ extern "C" int img_thread(void *arg)
         std::cerr << "fotozasok: " << ret << '\n';
 
         cv::Vec3i avg = average_color(frame);
+        cv::Vec3i ref_avg(255, 0, 0);
         bool match = false;
         for(int i = 0; i < REFERENCE_COUNT; i++) {
+            ref_avg = reference_average_colors[i];
             int color_distance = color_distance_percent(avg, reference_average_colors[i]);
             std::cout << "color_distance: " << color_distance << '\n';
             if(color_distance > 70) {
@@ -136,15 +146,12 @@ extern "C" int img_thread(void *arg)
                 break;
             }
         }
-        if(match)
-            led_green();
-        else
-            led_red();
+        // (255, 0, 0) if there was no match
+        rgb_reference_average_color(ref_avg);
         timespec one_sec;
         one_sec.tv_sec = 1;
         thrd_sleep(&one_sec, NULL);
 
-        led_blue(); // WARN ehhez kell mutex
         img_need_doing = false;
         mtx_unlock(&img_mtx);
     }
