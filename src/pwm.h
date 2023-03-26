@@ -7,7 +7,6 @@ extern "C" {
 
 /* Software PWM implementation for controlling an RGB LED */
 
-#include <threads.h>
 #include <gpiod.h>
 
 struct pwm;
