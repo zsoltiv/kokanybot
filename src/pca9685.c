@@ -1,14 +1,15 @@
-#include <unistd.h>
-#include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <time.h>
+#include <unistd.h>
+#include <math.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <i2c/smbus.h>
 
-#include "i2c.h"
+#include "pca9685.h"
 
 /*
  * PCA9685 datasheet
@@ -23,9 +24,9 @@
 #define MODE1_SLEEP (1u << 3)
 #define MODE1_RESTART (1u << 7)
 
-int i2c;
+int pca9685;
 
-static inline uint8_t servo(int n)
+static inline uint8_t pin(int n)
 {
     // 0x06-nal kezdodnek, 0x04 octet kulonbseg van a LEDn_ON_LOW-ok kozott
     return (uint8_t) (0x06 + n * 0x04);
@@ -43,43 +44,40 @@ static uint8_t calculate_prescale(int freq)
     return (uint8_t) (round(PCA9685_OSCILLIATOR / (freq * 4096)) - 1);
 }
 
-void i2c_init(void)
+void pca9685_init(void)
 {
-    i2c = open("/dev/i2c-1", O_RDWR);
-    if(i2c < 0) {
+    pca9685 = open("/dev/pca9685-1", O_RDWR);
+    if(pca9685 < 0) {
         perror("open()");
-        i2c_cleanup();
     }
 
-    if(ioctl(i2c, I2C_SLAVE, PCA9685_ADDR)) {
+    if(ioctl(pca9685, I2C_SLAVE, PCA9685_ADDR)) {
         perror("ioctl()");
-        i2c_cleanup();
     }
 
-    i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, MODE1_SLEEP);
-    i2c_smbus_write_byte_data(i2c, PCA9685_PRESCALE, calculate_prescale(50));
+    i2c_smbus_write_byte_data(pca9685, PCA9685_MODE1, MODE1_SLEEP);
+    i2c_smbus_write_byte_data(pca9685, PCA9685_PRESCALE, calculate_prescale(50));
     nanosleep(&(struct timespec) {.tv_nsec = 500000}, NULL);
-    i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, 0x1);
+    i2c_smbus_write_byte_data(pca9685, PCA9685_MODE1, 0x1);
 }
 
-void i2c_cleanup(void)
+void pca9685_cleanup(void)
 {
-    close(i2c);
+    close(pca9685);
 }
 
-void i2c_servo_set(int n, int degrees)
+void pca9685_pin_set(int n, int degrees)
 {
     if(n < 0 || n > 15)
         return;
     if(degrees < 0 || degrees > 179)
         return;
 
-    uint8_t s = servo(n);
+    uint8_t p = pin(n);
     uint16_t pwm = deg_to_pwm(degrees);
-    printf("%d deg\t%u PWM\n", degrees, pwm);
-    if(i2c_smbus_write_byte_data(i2c, servo(n) + 0, pwm & 0xFF) < 0 ||
-       i2c_smbus_write_byte_data(i2c, servo(n) + 1, pwm >> 8) < 0 ||
-       i2c_smbus_write_byte_data(i2c, servo(n) + 2, 0) < 0 ||
-       i2c_smbus_write_byte_data(i2c, servo(n) + 3, 0) < 0)
+    if(i2c_smbus_write_byte_data(pca9685, p + 0, pwm & 0xFF) < 0 ||
+       i2c_smbus_write_byte_data(pca9685, p + 1, pwm >> 8) < 0 ||
+       i2c_smbus_write_byte_data(pca9685, p + 2, 0) < 0 ||
+       i2c_smbus_write_byte_data(pca9685, p + 3, 0) < 0)
         perror("i2c_smbus_write_word_data()");
 }
