@@ -46,7 +46,7 @@ static uint8_t calculate_prescale(int freq)
 
 void pca9685_init(void)
 {
-    pca9685 = open("/dev/pca9685-1", O_RDWR);
+    pca9685 = open("/dev/i2c-1", O_RDWR);
     if(pca9685 < 0) {
         perror("open()");
     }
