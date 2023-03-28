@@ -45,7 +45,7 @@ static void servo_step(struct servo *s)
         case SERVO_DIRECTION_NONE:
             break;
         case SERVO_DIRECTION_BACKWARD:
-            if(s->degrees > 0)
+            if(s->degrees > 1)
                 s->degrees--;
             break;
         case SERVO_DIRECTION_FORWARD:
@@ -98,5 +98,19 @@ void servo_thread_change(struct servo_thread *st, int pin, enum servo_direction 
     st->change_pin = pin;
     st->change_direction = dir;
 
+    mtx_unlock(&st->lock);
+}
+
+void servo_thread_default(struct servo_thread *st, int pin)
+{
+    mtx_lock(&st->lock);
+    st->change_pin = pin;
+    struct servo *s = servo_thread_find_change_servo(st);
+    if(!s)
+        goto unlock;
+    s->degrees = 90;
+    s->direction = SERVO_DIRECTION_NONE;
+    st->change_pin = -1;
+unlock:
     mtx_unlock(&st->lock);
 }
