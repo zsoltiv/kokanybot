@@ -15,7 +15,7 @@ struct key_bind {
 };
 
 // WASD allapotok GPIO-hoz
-extern struct key_bind key_binds[6];
+extern struct key_bind key_binds[8];
 
 void input_init(void);
 void input_close(void);
