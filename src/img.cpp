@@ -45,8 +45,8 @@ static cv::Vec3i average_color(cv::Mat& img)
             ++col;
         }
     }
-    std::cout << bSum << " " << gSum << " " << rSum << std::endl;
     cv::Vec3i avg((bSum / pixels), (gSum / pixels), (rSum / pixels));
+    std::cout << "avg " << avg << std::endl;
 
     return avg;
 }
@@ -75,7 +75,9 @@ static void load_references(void)
 static int color_distance_percent(cv::Vec3i& avgA, cv::Vec3i& avgB)
 {
     cv::Vec3i hundreds(100, 100, 100);
-    cv::Vec3i percents = hundreds - (avgA - avgB);
+    cv::Vec3i percents = hundreds - cv::Vec3i(abs(avgA[0] - avgB[0]),
+                                              abs(avgA[1] - avgB[1]),
+                                              abs(avgA[2] - avgB[2]));
     return (percents.val[0] + percents.val[1] + percents.val[2]) / 3;
 }
 
@@ -131,7 +133,6 @@ extern "C" int img_thread(void *arg)
         std::cerr << "RECOGNITION\n";
 
         bool ret = cap.read(frame);
-        std::cerr << "fotozasok: " << ret << '\n';
 
         cv::Vec3i avg = average_color(frame);
         cv::Vec3i ref_avg(255, 0, 0);
