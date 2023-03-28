@@ -19,6 +19,8 @@ struct servo {
     enum servo_direction direction;
 };
 
+struct servo_thread *sth;
+
 static struct servo *servo_init(int pin, int degrees)
 {
     struct servo *s = malloc(sizeof(struct servo));
@@ -65,7 +67,6 @@ static int servo_thread(void *arg)
         if(st->change_pin > -1) {
             struct servo *s = servo_thread_find_change_servo(st);
             s->direction = st->change_direction;
-
             st->change_pin = -1;
         }
 
@@ -73,6 +74,7 @@ static int servo_thread(void *arg)
 
         for(int i = 0; i < ARM_SERVO_COUNT; i++)
             servo_step(st->servos[i]);
+        nanosleep(&(struct timespec) {.tv_nsec = 1000000}, NULL);
     }
 }
 

@@ -13,6 +13,9 @@ enum servo_direction {
 
 struct servo_thread;
 
+extern struct servo_thread *sth;
+
 struct servo_thread *servo_thread_init(int servo_pins[static ARM_SERVO_COUNT]);
+void servo_thread_change(struct servo_thread *st, int pin, enum servo_direction dir);
 
 #endif /* SERVO_H */
