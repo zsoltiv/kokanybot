@@ -10,7 +10,7 @@
 
 /* PWM constants used for RGB LED */
 #define PWM_FREQUENCY 100
-#define PWM_DUTY_MAX 255
+#define PWM_DUTY_MAX 256
 
 struct gpiod_chip           *chip;
 struct gpiod_line        *m1_en,
@@ -41,9 +41,8 @@ static int my_line_set_value(struct gpiod_line *line, int value)
 static struct gpiod_line *motorpin_init(unsigned int offset)
 {
     struct gpiod_line *line = gpiod_chip_get_line(chip, offset);
-    if(!line) {
+    if(!line)
         perror("gpiod_chip_get_line()");
-    }
 
     if(gpiod_line_request_output(line,
                                  GPIO_CONSUMER,

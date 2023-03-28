@@ -12,7 +12,6 @@ extern "C" {
 #include "pwm.h"
 
 #define GPIO_CHIP_PATH "/dev/gpiochip0"
-#define GPIO_CONSUMER "kokanybot"
 
 enum {
     GPIO_LOW = 0,
