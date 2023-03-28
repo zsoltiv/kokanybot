@@ -35,3 +35,6 @@ clean:
 
 install: $(BIN)
 	cp $(BIN) /usr/bin/$(BIN)
+
+run: all
+	./$(BIN)
