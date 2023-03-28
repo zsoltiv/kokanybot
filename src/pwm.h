@@ -9,6 +9,8 @@ extern "C" {
 
 #include <gpiod.h>
 
+#define GPIO_CONSUMER "kokanybot"
+
 struct pwm;
 
 struct pwm *pwm_init(struct gpiod_chip *chip,
