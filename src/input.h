@@ -20,5 +20,6 @@ extern struct key_bind key_binds[6];
 void input_init(void);
 void input_close(void);
 void input_receive_input(void);
+void dispatch_pending_events(void);
 
 #endif /* INPUT_H */

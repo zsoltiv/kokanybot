@@ -40,6 +40,14 @@ static void close_callback(int fd, void *user_data)
     close(fd);
 }
 
+void dispatch_pending_events(void)
+{
+    libinput_dispatch(lctx);
+    struct libinput_event *ev = NULL;
+    while((ev = libinput_get_event(lctx)))
+        libinput_event_destroy(ev);
+}
+
 void input_init(void)
 {
     linterface.open_restricted = open_callback;
@@ -56,10 +64,7 @@ void input_init(void)
     for(int i = 0; i < sizeof(key_binds) / sizeof(key_binds[0]); i++)
         key_binds[i].prev_state = LIBINPUT_KEY_STATE_RELEASED;
 
-    libinput_dispatch(lctx);
-    struct libinput_event *ev = NULL;
-    while((ev = libinput_get_event(lctx)))
-        libinput_event_destroy(ev);
+    dispatch_pending_events(); // dispatch LIBINPUT_EVENT_DEVICE_ADDED events
 }
 
 void input_close(void)
