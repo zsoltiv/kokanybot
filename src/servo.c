@@ -45,11 +45,11 @@ static void servo_step(struct servo *s)
         case SERVO_DIRECTION_NONE:
             break;
         case SERVO_DIRECTION_BACKWARD:
-            if(s->degrees > 1)
+            if(s->degrees > 10)
                 s->degrees--;
             break;
         case SERVO_DIRECTION_FORWARD:
-            if(s->degrees < 179)
+            if(s->degrees < 169)
                 s->degrees++;
             break;
     }

@@ -9,7 +9,7 @@
 #include "gpio.h"
 
 /* PWM constants used for RGB LED */
-#define PWM_FREQUENCY 100
+#define PWM_FREQUENCY 50
 #define PWM_DUTY_MAX 256
 
 struct gpiod_chip           *chip;
