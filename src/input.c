@@ -87,26 +87,24 @@ void input_receive_input(void)
         return;
     }
 
-    struct libinput_event *ev = libinput_get_event(lctx);
-    if(!ev) {
-        fprintf(stderr, "ev is NULL\n");
-        goto destroy;
-    }
-    if(libinput_event_get_type(ev) == LIBINPUT_EVENT_KEYBOARD_KEY) {
-        struct libinput_event_keyboard *kbev = libinput_event_get_keyboard_event(ev);
-        uint32_t keycode = libinput_event_keyboard_get_key(kbev);
-        int state_idx = get_key_bind_index(keycode);
-        if(state_idx > -1) {
-            enum libinput_key_state key_state = libinput_event_keyboard_get_key_state(kbev);
-            if(key_state != key_binds[state_idx].prev_state) {
-                puts("state changed");
-                key_binds[state_idx].func(key_state == LIBINPUT_KEY_STATE_PRESSED ? true : false);
-                key_binds[state_idx].prev_state = key_state;
+    struct libinput_event *ev = NULL;
+    while((ev = libinput_get_event(lctx))) {
+        if(libinput_event_get_type(ev) == LIBINPUT_EVENT_KEYBOARD_KEY) {
+            struct libinput_event_keyboard *kbev = libinput_event_get_keyboard_event(ev);
+            uint32_t keycode = libinput_event_keyboard_get_key(kbev);
+            int state_idx = get_key_bind_index(keycode);
+            if(state_idx > -1) {
+                print_event_header(ev);
+                enum libinput_key_state key_state = libinput_event_keyboard_get_key_state(kbev);
+                if(key_state != key_binds[state_idx].prev_state) {
+                    key_binds[state_idx].func(key_state == LIBINPUT_KEY_STATE_PRESSED ? true : false);
+                    key_binds[state_idx].prev_state = key_state;
+                }
+            } else {
+                fprintf(stderr, "rossz gomb\n");
             }
-        } else {
-            fprintf(stderr, "rossz gomb\n");
         }
+        libinput_event_destroy(ev);
+        libinput_dispatch(lctx);
     }
-destroy:
-    libinput_event_destroy(ev);
 }
