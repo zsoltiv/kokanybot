@@ -94,7 +94,6 @@ void input_receive_input(void)
             uint32_t keycode = libinput_event_keyboard_get_key(kbev);
             int state_idx = get_key_bind_index(keycode);
             if(state_idx > -1) {
-                print_event_header(ev);
                 enum libinput_key_state key_state = libinput_event_keyboard_get_key_state(kbev);
                 if(key_state != key_binds[state_idx].prev_state) {
                     key_binds[state_idx].func(key_state == LIBINPUT_KEY_STATE_PRESSED ? true : false);

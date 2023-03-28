@@ -1,4 +1,5 @@
 #include <threads.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -16,16 +17,26 @@ struct servo_thread {
 struct servo {
     int pin;
     int degrees;
+    int min_degrees;
+    int max_degrees;
     enum servo_direction direction;
 };
 
 struct servo_thread *sth;
 
-static struct servo *servo_init(int pin, int degrees)
+static inline int servo_calculate_middle_position(struct servo *s)
+{
+    return s->min_degrees + (s->max_degrees - s->min_degrees) / 2;
+}
+
+static struct servo *servo_init(int pin, int min_degrees, int max_degrees)
 {
     struct servo *s = malloc(sizeof(struct servo));
     s->pin = pin;
-    s->degrees = degrees;
+    s->min_degrees = min_degrees;
+    s->max_degrees = max_degrees;
+    s->degrees = servo_calculate_middle_position(s);
+    printf("%d\n", s->degrees);
     pca9685_pin_set(s->pin, s->degrees);
 
     return s;
@@ -45,11 +56,11 @@ static void servo_step(struct servo *s)
         case SERVO_DIRECTION_NONE:
             break;
         case SERVO_DIRECTION_BACKWARD:
-            if(s->degrees > 10)
+            if(s->degrees > s->min_degrees)
                 s->degrees--;
             break;
         case SERVO_DIRECTION_FORWARD:
-            if(s->degrees < 169)
+            if(s->degrees < s->max_degrees)
                 s->degrees++;
             break;
     }
@@ -84,8 +95,9 @@ struct servo_thread *servo_thread_init(int servo_pins[static ARM_SERVO_COUNT])
     mtx_init(&st->lock, mtx_plain);
     st->change_direction = SERVO_DIRECTION_NONE;
     st->change_pin = -1;
+    /* FIXME manually pass min and max degrees to each servo_init call */
     for(int i = 0; i < ARM_SERVO_COUNT; i++)
-        st->servos[i] = servo_init(servo_pins[i], 90);
+        st->servos[i] = servo_init(servo_pins[i], 20, 160);
     thrd_create(&st->thread, servo_thread, (void *) st);
 
     return st;
@@ -108,7 +120,7 @@ void servo_thread_default(struct servo_thread *st, int pin)
     struct servo *s = servo_thread_find_change_servo(st);
     if(!s)
         goto unlock;
-    s->degrees = 90;
+    s->degrees = servo_calculate_middle_position(s);
     s->direction = SERVO_DIRECTION_NONE;
     st->change_pin = -1;
 unlock:
