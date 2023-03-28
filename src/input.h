@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define INPUT_KEY_BINDS 8
+
 typedef void (*toggle_func)(bool);
 
 struct key_bind {
@@ -15,7 +17,7 @@ struct key_bind {
 };
 
 // WASD allapotok GPIO-hoz
-extern struct key_bind key_binds[8];
+extern struct key_bind key_binds[INPUT_KEY_BINDS];
 
 void input_init(void);
 void input_close(void);
