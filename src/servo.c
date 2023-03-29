@@ -36,7 +36,6 @@ static struct servo *servo_init(int pin, int min_degrees, int max_degrees)
     s->min_degrees = min_degrees;
     s->max_degrees = max_degrees;
     s->degrees = servo_calculate_middle_position(s);
-    printf("%d\n", s->degrees);
     pca9685_pin_set(s->pin, s->degrees);
 
     return s;
@@ -66,6 +65,8 @@ static void servo_step(struct servo *s)
     }
 
     pca9685_pin_set(s->pin, s->degrees);
+    if(s->pin == 10)
+        printf("%d degrees\n", s->degrees);
 }
 
 static int servo_thread(void *arg)
@@ -96,8 +97,13 @@ struct servo_thread *servo_thread_init(int servo_pins[static ARM_SERVO_COUNT])
     st->change_direction = SERVO_DIRECTION_NONE;
     st->change_pin = -1;
     /* FIXME manually pass min and max degrees to each servo_init call */
-    for(int i = 0; i < ARM_SERVO_COUNT; i++)
-        st->servos[i] = servo_init(servo_pins[i], 20, 160);
+    st->servos[0] = servo_init(servo_pins[0], 70, 110);
+    st->servos[1] = servo_init(servo_pins[1], 60, 160);
+    st->servos[2] = servo_init(servo_pins[2], 100, 160);
+    st->servos[3] = servo_init(servo_pins[3], 90, 180);
+    st->servos[4] = servo_init(servo_pins[4], 100, 150);
+    st->servos[5] = servo_init(servo_pins[5], 90, 160);
+    st->servos[6] = servo_init(servo_pins[6], 105, 160);
     thrd_create(&st->thread, servo_thread, (void *) st);
 
     return st;
