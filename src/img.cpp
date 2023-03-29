@@ -34,8 +34,8 @@ static void print_mat_details(cv::Mat& m)
 
 static cv::Vec3i average_color(cv::Mat& img)
 {
-    int pixels = img.rows * img.cols;
-    int bSum = 0, gSum = 0, rSum = 0;
+    int64_t pixels = img.rows * img.cols;
+    int64_t bSum = 0, gSum = 0, rSum = 0;
     for(int row = 0; row < img.rows; row++) {
         uchar* col = img.ptr(row);
         for(int nCol = 0; nCol < img.cols; nCol++) {
@@ -45,7 +45,7 @@ static cv::Vec3i average_color(cv::Mat& img)
             ++col;
         }
     }
-    cv::Vec3i avg((bSum / pixels), (gSum / pixels), (rSum / pixels));
+    cv::Vec3i avg((int) (bSum / pixels), (int) (gSum / pixels), (int) (rSum / pixels));
     std::cout << "avg " << avg << std::endl;
 
     return avg;
