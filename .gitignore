@@ -3,3 +3,5 @@ build/*
 server
 client
 kokanybot
+*.png
+*.jpg
