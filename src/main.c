@@ -24,11 +24,11 @@ void stop(bool unused)
 
 void move_servo_forward(bool pressed)
 {
-    servo_thread_change(sth, 15, pressed ? SERVO_DIRECTION_FORWARD : SERVO_DIRECTION_NONE);
+    servo_thread_change(sth, 10, pressed ? SERVO_DIRECTION_FORWARD : SERVO_DIRECTION_NONE);
 }
 void move_servo_backward(bool pressed)
 {
-    servo_thread_change(sth, 15, pressed ? SERVO_DIRECTION_BACKWARD : SERVO_DIRECTION_NONE);
+    servo_thread_change(sth, 10, pressed ? SERVO_DIRECTION_BACKWARD : SERVO_DIRECTION_NONE);
 }
 
 struct key_bind key_binds[INPUT_KEY_BINDS] = {
