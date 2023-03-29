@@ -146,10 +146,10 @@ extern "C" int img_thread(void *arg)
         cv::Vec3i ref_avg(255, 0, 0);
         bool match = false;
         for(int i = 0; i < REFERENCE_COUNT; i++) {
-            ref_avg = reference_average_colors[i];
             int color_distance = color_distance_percent(avg, reference_average_colors[i]);
             std::cout << "color_distance: " << color_distance << '\n';
             if(color_distance > 70) {
+                ref_avg = reference_average_colors[i];
                 std::cout << "matched " << i << '\n';
                 match = true;
                 break;
