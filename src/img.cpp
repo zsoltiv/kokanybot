@@ -100,7 +100,7 @@ extern "C" int img_thread(void *arg)
 {
     int ret = thrd_success;
     cv::VideoCapture cap(0, cv::CAP_V4L);
-    cv::Mat frame;
+    cv::Mat frame_rgb, frame;
 
     if((ret = mtx_init(&img_mtx, mtx_plain)) != thrd_success) {
         std::cerr << "mtx_init bukott\n";
@@ -124,7 +124,7 @@ extern "C" int img_thread(void *arg)
         fprintf(stderr, "CAP_PROP_CONVERT_RGB unsupported\n");
 
     for(int i = 0; i < 50; i++)
-        cap >> frame;
+        cap >> frame_rgb;
     std::cout << "frames retrieved\n";
 
     while(true) {
@@ -136,7 +136,8 @@ extern "C" int img_thread(void *arg)
 
         std::cerr << "RECOGNITION\n";
 
-        cap >> frame;
+        cap >> frame_rgb;
+        cv::cvtColor(frame_rgb, frame, cv::COLOR_RGB2BGR);
 
         ret = cv::imwrite("captured.png", frame);
         std::cout << "wrote image\n";
