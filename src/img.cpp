@@ -2,6 +2,7 @@
 
 #include "gpio.h"
 #include "pwm.h"
+#include "init.h"
 
 #include <iostream>
 #include <ctime>
@@ -98,21 +99,25 @@ extern "C" void do_image_recognition(bool should_do)
 
 extern "C" int img_thread(void *arg)
 {
+    mtx_lock(&init_mtx);
     int ret = thrd_success;
     cv::VideoCapture cap(0, cv::CAP_V4L);
     cv::Mat frame_rgb, frame;
 
     if((ret = mtx_init(&img_mtx, mtx_plain)) != thrd_success) {
         std::cerr << "mtx_init bukott\n";
+        mtx_unlock(&init_mtx);
         goto finish;
     }
     if((ret = cnd_init(&img_cnd)) != thrd_success) {
         std::cerr << "cnd_init bukott\n";
+        mtx_unlock(&init_mtx);
         goto finish;
     }
     if(!cap.isOpened()) {
         std::cerr << "/dev/video0 megnyitasa bukott\n";
         ret = thrd_error;
+        mtx_unlock(&init_mtx);
         goto finish;
     }
     load_references();
@@ -126,6 +131,8 @@ extern "C" int img_thread(void *arg)
     for(int i = 0; i < 50; i++)
         cap >> frame_rgb;
     std::cout << "frames retrieved\n";
+    rgb_reference_average_color(cv::Vec3i(0, 255, 0));
+    mtx_unlock(&init_mtx);
 
     while(true) {
         std::cerr << "img_loop\n";

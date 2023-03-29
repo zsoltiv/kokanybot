@@ -8,11 +8,14 @@
 #include <linux/input-event-codes.h>
 
 #include "img.h"
+#include "init.h"
 #include "pca9685.h"
 #include "gpio.h"
 #include "input.h"
 #include "servo.h"
 #include "pwm.h"
+
+mtx_t init_mtx;
 
 void stop(bool unused)
 {
@@ -49,10 +52,12 @@ int main(void)
     input_init();
     int servo_pins[] = {9, 10, 11, 12, 13, 14, 15};
     sth = servo_thread_init(servo_pins);
+    mtx_init(&init_mtx, mtx_plain);
     if(thrd_create(&img_thrd, img_thread, NULL) != thrd_success) {
         fprintf(stderr, "thrd_create elbukott\n");
     }
     printf("Up and running\n");
+    mtx_lock(&init_mtx);
     while(1) { // robot loop
         input_receive_input();
 
@@ -78,6 +83,7 @@ int main(void)
         //pwm_set_duty_cycle(b, 255);
         //sleep(1);
     }
+    mtx_unlock(&init_mtx);
 
     thrd_join(img_thrd, NULL);
 }
