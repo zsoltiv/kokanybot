@@ -99,7 +99,6 @@ extern "C" void do_image_recognition(bool should_do)
 extern "C" int img_thread(void *arg)
 {
     int ret = thrd_success;
-    //cv::VideoCapture cap("/dev/video0", cv::CAP_FFMPEG);
     cv::VideoCapture cap(0, cv::CAP_V4L);
     cv::Mat frame;
 
@@ -121,7 +120,12 @@ extern "C" int img_thread(void *arg)
         fprintf(stderr, "CAP_PROP_FRAME_WIDTH unsupported\n");
     if(!cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720))
         fprintf(stderr, "CAP_PROP_FRAME_HEIGHT unsupported\n");
+    if(!cap.set(cv::CAP_PROP_CONVERT_RGB, true))
+        fprintf(stderr, "CAP_PROP_CONVERT_RGB unsupported\n");
 
+    for(int i = 0; i < 50; i++)
+        cap >> frame;
+    std::cout << "frames retrieved\n";
 
     while(true) {
         std::cerr << "img_loop\n";
@@ -132,7 +136,10 @@ extern "C" int img_thread(void *arg)
 
         std::cerr << "RECOGNITION\n";
 
-        bool ret = cap.read(frame);
+        cap >> frame;
+
+        ret = cv::imwrite("captured.png", frame);
+        std::cout << "wrote image\n";
 
         cv::Vec3i avg = average_color(frame);
         cv::Vec3i ref_avg(255, 0, 0);
