@@ -35,6 +35,7 @@ clean:
 
 install: $(BIN)
 	cp $(BIN) /usr/bin/$(BIN)
+	cp kokanybot.service /etc/systemd/system
 
 run: all
 	./$(BIN)
