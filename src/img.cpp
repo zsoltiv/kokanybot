@@ -15,7 +15,7 @@
 #include <threads.h>
 
 /* `ls -1 hazmat | wc -l` */
-#define REFERENCE_COUNT 35
+#define REFERENCE_COUNT 14
 #define REFERENCE_DIR "/home/pi/kokanybot/hazmat"
 
 extern "C" {
