@@ -16,6 +16,7 @@
 #include "pwm.h"
 
 mtx_t init_mtx;
+int servo_pins[] = {8, 10, 11, 12, 13, 14, 15};
 
 void stop(bool unused)
 {
@@ -34,7 +35,7 @@ static int pin = 15;
 
 #define SERVO_SELECT_FUNC(n) static void servo_select_##n(bool unused) \
 {\
-    pin = 16 - (n);\
+    pin = servo_pins[sizeof(servo_pins) / sizeof(servo_pins[0]) - (n)];\
 }
 
 #define SERVO_SELECT_BIND(n) { .key = KEY_##n, .func = servo_select_##n }
@@ -79,7 +80,6 @@ int main(void)
     gpio_init();
     pca9685_init();
     input_init();
-    int servo_pins[] = {9, 10, 11, 12, 13, 14, 15};
     sth = servo_thread_init(servo_pins);
     mtx_init(&init_mtx, mtx_plain);
     if(thrd_create(&img_thrd, img_thread, NULL) != thrd_success) {
