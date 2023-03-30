@@ -28,7 +28,6 @@ extern "C" {
 struct reference {
     cv::Mat image;
     cv::Vec3i average_color;
-    std::string filename;
 };
 
 reference references[REFERENCE_COUNT];
@@ -80,7 +79,7 @@ static int color_distance_percent(cv::Vec3i& avgA, cv::Vec3i& avgB)
     cv::Vec3i percents = hundreds - cv::Vec3i(abs(avgA[0] - avgB[0]),
                                               abs(avgA[1] - avgB[1]),
                                               abs(avgA[2] - avgB[2]));
-    return (percents.val[0] + percents.val[1] + percents.val[2]) / 3;
+    return (abs(percents[0]) + abs(percents[1]) + abs(percents[2])) / 3;
 }
 
 static void rgb_reference_average_color(cv::Vec3i& ref_avg)
@@ -130,8 +129,6 @@ extern "C" int img_thread(void *arg)
     if(!cap.set(cv::CAP_PROP_CONVERT_RGB, true))
         fprintf(stderr, "CAP_PROP_CONVERT_RGB unsupported\n");
 
-    //for(int i = 0; i < 50; i++)
-    //    cap >> frame_rgb;
     std::cout << "frames retrieved\n";
     rgb_reference_average_color(red);
     mtx_unlock(&init_mtx);
@@ -148,20 +145,19 @@ extern "C" int img_thread(void *arg)
         cap >> frame_rgb;
         cv::cvtColor(frame_rgb, frame, cv::COLOR_RGB2BGR);
 
-        ret = cv::imwrite("captured.png", frame_rgb);
+        ret = cv::imwrite("/home/pi/captured.png", frame_rgb);
         std::cout << "wrote image\n";
 
         cv::Vec3i avg = average_color(frame);
         cv::Vec3i ref_avg(255, 0, 0);
-        bool match = false;
+        int best = 0, best_distance = 0;
         for(int i = 0; i < REFERENCE_COUNT; i++) {
             int color_distance = color_distance_percent(avg, references[i].average_color);
             std::cout << "color_distance: " << color_distance << '\n';
-            if(color_distance > 70) {
+            if(color_distance > best_distance) {
                 ref_avg = references[i].average_color;
-                std::cout << "matched " << i << '\n';
-                match = true;
-                break;
+                best = i;
+                best_distance = color_distance;
             }
         }
         // (255, 0, 0) if there was no match
