@@ -25,13 +25,13 @@ extern "C" {
     bool img_need_doing = false;
 }
 
-cv::Mat references[REFERENCE_COUNT];
-cv::Vec3i reference_average_colors[REFERENCE_COUNT];
+struct reference {
+    cv::Mat image;
+    cv::Vec3i average_color;
+    std::string filename;
+};
 
-static void print_mat_details(cv::Mat& m)
-{
-    std::cout << m.channels() << " channel\n";
-}
+reference references[REFERENCE_COUNT];
 
 static cv::Vec3i average_color(cv::Mat& img)
 {
@@ -65,9 +65,8 @@ static void load_references(void)
         std::string filepath(REFERENCE_DIR);
         filepath += "/";
         filepath += e->d_name;
-        references[i] = cv::imread(filepath, cv::IMREAD_COLOR);
-        reference_average_colors[i] = average_color(references[i]);
-        print_mat_details(references[i]);
+        references[i].image = cv::imread(filepath, cv::IMREAD_COLOR);
+        references[i].average_color = average_color(references[i].image);
         i++;
     }
     closedir(dir);
@@ -154,10 +153,10 @@ extern "C" int img_thread(void *arg)
         cv::Vec3i ref_avg(255, 0, 0);
         bool match = false;
         for(int i = 0; i < REFERENCE_COUNT; i++) {
-            int color_distance = color_distance_percent(avg, reference_average_colors[i]);
+            int color_distance = color_distance_percent(avg, references[i].average_color);
             std::cout << "color_distance: " << color_distance << '\n';
             if(color_distance > 70) {
-                ref_avg = reference_average_colors[i];
+                ref_avg = references[i].average_color;
                 std::cout << "matched " << i << '\n';
                 match = true;
                 break;
