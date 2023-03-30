@@ -4,6 +4,9 @@ After=multi-user.target
 
 [Service]
 ExecStart=/usr/bin/kokanybot
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
 Type=simple
 Restart=always
 
