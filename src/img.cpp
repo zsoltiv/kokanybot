@@ -76,10 +76,10 @@ static void load_references(void)
 static int color_distance_percent(cv::Vec3i& avgA, cv::Vec3i& avgB)
 {
     cv::Vec3i hundreds(100, 100, 100);
-    cv::Vec3i percents = hundreds - cv::Vec3i(abs(avgA[0] - avgB[0]),
-                                              abs(avgA[1] - avgB[1]),
-                                              abs(avgA[2] - avgB[2]));
-    return (abs(percents[0]) + abs(percents[1]) + abs(percents[2])) / 3;
+    cv::Vec3i percents = hundreds - cv::Vec3i(cv::pow(abs(avgA[0] - avgB[0]), 2),
+                                              cv::pow(abs(avgA[1] - avgB[1]), 2),
+                                              cv::pow(abs(avgA[2] - avgB[2]), 2));
+    return cv::sqrt(abs(percents[0]) + abs(percents[1]) + abs(percents[2]));
 }
 
 static void rgb_reference_average_color(cv::Vec3i& ref_avg)
