@@ -68,6 +68,8 @@ static void load_references(void)
         references[i].image = cv::imread(filepath, cv::IMREAD_COLOR);
         references[i].average_color = average_color(references[i].image);
         i++;
+        if(i == REFERENCE_COUNT)
+            break;
     }
     closedir(dir);
 }
