@@ -128,6 +128,8 @@ extern "C" int img_thread(void *arg)
         fprintf(stderr, "CAP_PROP_FRAME_HEIGHT unsupported\n");
     if(!cap.set(cv::CAP_PROP_CONVERT_RGB, true))
         fprintf(stderr, "CAP_PROP_CONVERT_RGB unsupported\n");
+    if(!cap.set(cv::CAP_PROP_BUFFERSIZE, 0))
+        fprintf(stderr, "CAP_PROP_BUFFERSIZE unsupported\n");
 
     std::cout << "frames retrieved\n";
     rgb_reference_average_color(red);
@@ -142,7 +144,7 @@ extern "C" int img_thread(void *arg)
 
         std::cerr << "RECOGNITION\n";
 
-        cap >> frame_rgb;
+        cap.read(frame_rgb);
         cv::cvtColor(frame_rgb, frame, cv::COLOR_RGB2BGR);
 
         ret = cv::imwrite("/home/pi/captured.png", frame_rgb);
@@ -154,7 +156,7 @@ extern "C" int img_thread(void *arg)
         for(int i = 0; i < REFERENCE_COUNT; i++) {
             int color_distance = color_distance_percent(avg, references[i].average_color);
             std::cout << "color_distance: " << color_distance << '\n';
-            if(color_distance > best_distance) {
+            if(color_distance < best_distance) {
                 ref_avg = references[i].average_color;
                 best = i;
                 best_distance = color_distance;
