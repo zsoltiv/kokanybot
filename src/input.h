@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define INPUT_KEY_BINDS 15
+#define INPUT_KEY_BINDS 13
 
 typedef void (*toggle_func)(bool);
 

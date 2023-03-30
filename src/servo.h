@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#define ARM_SERVO_COUNT 7
+#define ARM_SERVO_COUNT 5
 
 enum servo_direction {
     SERVO_DIRECTION_NONE = 0,

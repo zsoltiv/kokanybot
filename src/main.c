@@ -16,7 +16,7 @@
 #include "pwm.h"
 
 mtx_t init_mtx;
-int servo_pins[] = {8, 10, 11, 12, 13, 14, 15};
+int servo_pins[] = {11, 12, 13, 14, 15};
 
 void stop(bool unused)
 {
@@ -28,13 +28,9 @@ void stop(bool unused)
 
 static int pin = 15;
 
-//#define SERVO_SELECT_FUNC(n) static void servo_select_##n(bool unused) \
-//{\
-//    pin = servo_pins[sizeof(servo_pins) / sizeof(servo_pins[0]) - (n)];
-//}
 #define SERVO_SELECT_FUNC(n) static void servo_select_##n(bool unused) \
 {\
-    \
+    pin = servo_pins[sizeof(servo_pins) / sizeof(servo_pins[0]) - (n)];\
 }
 
 #define SERVO_SELECT_BIND(n) { .key = KEY_##n, .func = servo_select_##n }
@@ -44,8 +40,6 @@ SERVO_SELECT_FUNC(2)
 SERVO_SELECT_FUNC(3)
 SERVO_SELECT_FUNC(4)
 SERVO_SELECT_FUNC(5)
-SERVO_SELECT_FUNC(6)
-SERVO_SELECT_FUNC(7)
 
 void move_servo_forward(bool pressed)
 {
@@ -70,16 +64,14 @@ struct key_bind key_binds[INPUT_KEY_BINDS] = {
     SERVO_SELECT_BIND(3),
     SERVO_SELECT_BIND(4),
     SERVO_SELECT_BIND(5),
-    SERVO_SELECT_BIND(6),
-    SERVO_SELECT_BIND(7),
 };
 
 int main(void)
 {
     gpio_init();
-    //pca9685_init();
+    pca9685_init();
     input_init();
-    //sth = servo_thread_init(servo_pins);
+    sth = servo_thread_init(servo_pins);
     mtx_init(&init_mtx, mtx_plain);
     if(thrd_create(&img_thrd, img_thread, NULL) != thrd_success) {
         fprintf(stderr, "thrd_create elbukott\n");
