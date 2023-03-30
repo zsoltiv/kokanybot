@@ -101,6 +101,7 @@ extern "C" int img_thread(void *arg)
 {
     mtx_lock(&init_mtx);
     int ret = thrd_success;
+    cv::Vec3i red(0, 255, 0);
     cv::VideoCapture cap(0, cv::CAP_V4L);
     cv::Mat frame_rgb, frame;
 
@@ -131,7 +132,7 @@ extern "C" int img_thread(void *arg)
     for(int i = 0; i < 50; i++)
         cap >> frame_rgb;
     std::cout << "frames retrieved\n";
-    rgb_reference_average_color(cv::Vec3i(0, 255, 0));
+    rgb_reference_average_color(red);
     mtx_unlock(&init_mtx);
 
     while(true) {
@@ -146,7 +147,7 @@ extern "C" int img_thread(void *arg)
         cap >> frame_rgb;
         cv::cvtColor(frame_rgb, frame, cv::COLOR_RGB2BGR);
 
-        ret = cv::imwrite("captured.png", frame);
+        ret = cv::imwrite("captured.png", frame_rgb);
         std::cout << "wrote image\n";
 
         cv::Vec3i avg = average_color(frame);
