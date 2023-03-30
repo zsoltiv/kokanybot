@@ -1,5 +1,6 @@
 [Unit]
 Description=Kokanybot program
+After=multi-user.target
 
 [Service]
 ExecStart=/usr/bin/kokanybot
