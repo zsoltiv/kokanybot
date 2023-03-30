@@ -130,8 +130,8 @@ extern "C" int img_thread(void *arg)
     if(!cap.set(cv::CAP_PROP_CONVERT_RGB, true))
         fprintf(stderr, "CAP_PROP_CONVERT_RGB unsupported\n");
 
-    for(int i = 0; i < 50; i++)
-        cap >> frame_rgb;
+    //for(int i = 0; i < 50; i++)
+    //    cap >> frame_rgb;
     std::cout << "frames retrieved\n";
     rgb_reference_average_color(red);
     mtx_unlock(&init_mtx);
