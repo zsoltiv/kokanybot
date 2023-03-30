@@ -28,14 +28,13 @@ void stop(bool unused)
 
 static int pin = 15;
 
-//void servo_select_1(bool unused)
-//{
-//    pin = 15;
+//#define SERVO_SELECT_FUNC(n) static void servo_select_##n(bool unused) \
+//{\
+//    pin = servo_pins[sizeof(servo_pins) / sizeof(servo_pins[0]) - (n)];
 //}
-
 #define SERVO_SELECT_FUNC(n) static void servo_select_##n(bool unused) \
 {\
-    pin = servo_pins[sizeof(servo_pins) / sizeof(servo_pins[0]) - (n)];\
+    \
 }
 
 #define SERVO_SELECT_BIND(n) { .key = KEY_##n, .func = servo_select_##n }
@@ -78,9 +77,9 @@ struct key_bind key_binds[INPUT_KEY_BINDS] = {
 int main(void)
 {
     gpio_init();
-    pca9685_init();
+    //pca9685_init();
     input_init();
-    sth = servo_thread_init(servo_pins);
+    //sth = servo_thread_init(servo_pins);
     mtx_init(&init_mtx, mtx_plain);
     if(thrd_create(&img_thrd, img_thread, NULL) != thrd_success) {
         fprintf(stderr, "thrd_create elbukott\n");
@@ -89,28 +88,6 @@ int main(void)
     mtx_lock(&init_mtx);
     while(1) { // robot loop
         input_receive_input();
-
-        //for(int i = 30; i < 60; i++) {
-        //    pca9685_pin_set(15, i);
-        //    usleep(2000);
-        //}
-        //for(int i = 59; i >= 30; i--) {
-        //    pca9685_pin_set(15, i);
-        //    usleep(2000);
-        //}
-
-        //pwm_set_duty_cycle(r, 255);
-        //pwm_set_duty_cycle(g, 255);
-        //pwm_set_duty_cycle(b, 0);
-        //sleep(1);
-        //pwm_set_duty_cycle(r, 0);
-        //pwm_set_duty_cycle(g, 255);
-        //pwm_set_duty_cycle(b, 255);
-        //sleep(1);
-        //pwm_set_duty_cycle(r, 255);
-        //pwm_set_duty_cycle(g, 255);
-        //pwm_set_duty_cycle(b, 255);
-        //sleep(1);
     }
     mtx_unlock(&init_mtx);
 
