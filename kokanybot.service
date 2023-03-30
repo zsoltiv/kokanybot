@@ -3,6 +3,8 @@ Description=Kokanybot program
 
 [Service]
 ExecStart=/usr/bin/kokanybot
+Type=simple
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
