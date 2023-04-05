@@ -12,6 +12,7 @@
 #include <opencv4/opencv2/videoio.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
 #include <opencv4/opencv2/imgcodecs.hpp>
+#include <opencv4/opencv2/core/hal/interface.h>
 #include <threads.h>
 
 /* `ls -1 hazmat | wc -l` */
@@ -75,18 +76,17 @@ static void load_references(void)
 
 static int color_distance_percent(cv::Vec3i& avgA, cv::Vec3i& avgB)
 {
-    cv::Vec3i hundreds(100, 100, 100);
-    cv::Vec3i percents = hundreds - cv::Vec3i(cv::pow(abs(avgA[0] - avgB[0]), 2),
-                                              cv::pow(abs(avgA[1] - avgB[1]), 2),
-                                              cv::pow(abs(avgA[2] - avgB[2]), 2));
+    cv::Vec3i percents = cv::Vec3i(cv::pow(avgA[0] - avgB[0], 2),
+                                   cv::pow(avgA[1] - avgB[1], 2),
+                                   cv::pow(avgA[2] - avgB[2], 2));
     return cv::sqrt(abs(percents[0]) + abs(percents[1]) + abs(percents[2]));
 }
 
 static void rgb_reference_average_color(cv::Vec3i& ref_avg)
 {
-    pwm_set_duty_cycle(r, ref_avg[0]);
+    pwm_set_duty_cycle(r, ref_avg[2]);
     pwm_set_duty_cycle(g, ref_avg[1]);
-    pwm_set_duty_cycle(b, ref_avg[2]);
+    pwm_set_duty_cycle(b, ref_avg[0]);
 }
 
 extern "C" void do_image_recognition(bool should_do)
@@ -152,7 +152,7 @@ extern "C" int img_thread(void *arg)
 
         cv::Vec3i avg = average_color(frame_rgb);
         cv::Vec3i ref_avg(0, 0, 0);
-        int best = 0, best_distance = 0;
+        int best = 0, best_distance = INT32_MAX;
         for(int i = 0; i < REFERENCE_COUNT; i++) {
             int color_distance = color_distance_percent(avg, references[i].average_color);
             std::cout << "color_distance: " << color_distance << '\n';
@@ -167,6 +167,7 @@ extern "C" int img_thread(void *arg)
         timespec one_sec;
         one_sec.tv_sec = 1;
         thrd_sleep(&one_sec, NULL);
+        rgb_reference_average_color(red);
 
         img_need_doing = false;
         mtx_unlock(&img_mtx);
