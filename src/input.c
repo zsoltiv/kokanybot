@@ -32,7 +32,7 @@ void input_init(void)
 
 void input_process_key_event(uint8_t keycode)
 {
-    int state_idx = get_key_bind_index(keycode);
+    int state_idx = get_key_bind_index(keycode & 0x7F); // discard MSB
     if(state_idx > -1) {
         bool key_state = is_key_pressed(keycode);
         if(key_state != key_binds[state_idx].prev_state) {
