@@ -27,6 +27,8 @@ int net_listener_new(int port)
     struct sockaddr_in *inaddr = (struct sockaddr_in *)ifap->ifa_addr;
     inaddr->sin_port = port;
     int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock < 0)
+        perror("socket()");
     if(bind(sock, ifap->ifa_addr, sizeof(struct sockaddr_in)) < 0)
         perror("bind()");
 
