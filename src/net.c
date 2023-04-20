@@ -1,5 +1,6 @@
 #include <netinet/in.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <string.h>
@@ -51,4 +52,13 @@ int net_accept(int listener)
         perror("accept()");
 
     return client;
+}
+
+uint8_t net_receive_keypress(int client)
+{
+    uint8_t keycode;
+    if(recv(client, &keycode, 1, 0) != sizeof(keycode))
+        perror("recv()");
+
+    return keycode;
 }
