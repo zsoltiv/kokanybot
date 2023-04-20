@@ -7,6 +7,7 @@
 #include <string.h>
 #include <linux/input-event-codes.h>
 
+#include "net.h"
 #include "img.h"
 #include "init.h"
 #include "pca9685.h"
@@ -71,6 +72,8 @@ int main(void)
     gpio_init();
     pca9685_init();
     input_init();
+    int listener = net_listener_new(1337);
+    int client = net_accept(listener);
     sth = servo_thread_init(servo_pins);
     mtx_init(&init_mtx, mtx_plain);
     if(thrd_create(&img_thrd, img_thread, NULL) != thrd_success) {
