@@ -11,17 +11,15 @@
 typedef void (*toggle_func)(bool);
 
 struct key_bind {
-    uint32_t key;
+    uint8_t key;
     toggle_func func;
-    enum libinput_key_state prev_state;
+    bool prev_state;
 };
 
 // WASD allapotok GPIO-hoz
 extern struct key_bind key_binds[INPUT_KEY_BINDS];
 
 void input_init(void);
-void input_close(void);
-void input_receive_input(void);
-void dispatch_pending_events(void);
+void input_process_key_event(uint8_t keycode);
 
 #endif /* INPUT_H */

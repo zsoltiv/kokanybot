@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <threads.h>
 #include <time.h>
@@ -21,7 +22,6 @@ int servo_pins[] = {11, 12, 13, 14, 15};
 
 void stop(bool unused)
 {
-    dispatch_pending_events();
     motor_stop(unused);
     for(int i = 0; i < 16; i++)
         servo_thread_default(sth, i);
@@ -46,6 +46,7 @@ void move_servo_forward(bool pressed)
 {
     servo_thread_change(sth, pin, pressed ? SERVO_DIRECTION_FORWARD : SERVO_DIRECTION_NONE);
 }
+
 void move_servo_backward(bool pressed)
 {
     servo_thread_change(sth, pin, pressed ? SERVO_DIRECTION_BACKWARD : SERVO_DIRECTION_NONE);
@@ -82,7 +83,8 @@ int main(void)
     printf("Up and running\n");
     mtx_lock(&init_mtx);
     while(1) { // robot loop
-        input_receive_input();
+        uint8_t keycode = net_receive_keypress(client);
+        input_process_key_event(keycode);
     }
     mtx_unlock(&init_mtx);
 
