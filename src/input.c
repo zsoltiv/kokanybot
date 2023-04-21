@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <errno.h>
-#include <linux/input-event-codes.h>
 
 #include "net.h"
 #include "input.h"

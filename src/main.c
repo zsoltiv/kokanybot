@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <threads.h>
 #include <time.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <linux/input-event-codes.h>
 
 #include "net.h"
 #include "stream.h"
@@ -35,7 +35,7 @@ static int pin = 15;
     pin = servo_pins[sizeof(servo_pins) / sizeof(servo_pins[0]) - (n)];\
 }
 
-#define SERVO_SELECT_BIND(n) { .key = KEY_##n, .func = servo_select_##n }
+#define SERVO_SELECT_BIND(n) { .key = (uint8_t)((n) + 48), .func = servo_select_##n }
 
 SERVO_SELECT_FUNC(1)
 SERVO_SELECT_FUNC(2)
@@ -54,14 +54,14 @@ void move_servo_backward(bool pressed)
 }
 
 struct key_bind key_binds[INPUT_KEY_BINDS] = {
-    { .key =     KEY_W, .func =        motor_forward },
-    { .key =     KEY_A, .func =           motor_left },
-    { .key =     KEY_S, .func =       motor_backward },
-    { .key =     KEY_D, .func =          motor_right },
-    { .key = KEY_SPACE, .func = do_image_recognition },
-    { .key =     KEY_R, .func =                 stop },
-    { .key =     KEY_E, .func = move_servo_forward   },
-    { .key =     KEY_Q, .func = move_servo_backward  },
+    { .key = 'w', .func =        motor_forward },
+    { .key = 'a', .func =           motor_left },
+    { .key = 's', .func =       motor_backward },
+    { .key = 'd', .func =          motor_right },
+    { .key = ' ', .func = do_image_recognition },
+    { .key = 'r', .func =                 stop },
+    { .key = 'e', .func = move_servo_forward   },
+    { .key = 'q', .func = move_servo_backward  },
     SERVO_SELECT_BIND(1),
     SERVO_SELECT_BIND(2),
     SERVO_SELECT_BIND(3),
