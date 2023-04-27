@@ -66,7 +66,7 @@ uint8_t net_receive_keypress(int client)
     if(recv(client, &keycode, 1, 0) != sizeof(keycode))
         perror("recv()");
 
-    printf("KEYCODE IS %u\n", keycode & 0x7F);
+    printf("KEYCODE IS %u\tPRESSED %u\n", keycode & 0x7F, !!(keycode & 0x80));
 
     return keycode;
 }
