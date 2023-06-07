@@ -19,6 +19,7 @@ void stream_init(void)
     camera = avformat_alloc_context();
     AVDictionary *input_opts = NULL;
     av_dict_set(&input_opts, "video_size", "1920x1080", 0);
+    av_dict_set(&input_opts, "pixe_fmt", "yuv420p", 0);
     const AVInputFormat *h264 = av_find_input_format("h264");
     if(!h264)
         fprintf(stderr, "FFmpeg doesn't support h264\n");
