@@ -32,6 +32,7 @@ extern struct pwm *r,
 
 void gpio_init(void);
 void gpio_cleanup(void);
+struct gpiod_chip *gpio_get_chip(void);
 
 void motor_forward(bool pressed);
 void motor_backward(bool pressed);
