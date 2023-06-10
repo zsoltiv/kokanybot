@@ -14,9 +14,9 @@
 #include "init.h"
 #include "pca9685.h"
 #include "gpio.h"
+#include "motor.h"
 #include "input.h"
 #include "servo.h"
-#include "pwm.h"
 
 mtx_t init_mtx;
 int servo_pins[] = {11, 12, 13, 14, 15};

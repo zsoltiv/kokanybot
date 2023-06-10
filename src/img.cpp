@@ -1,7 +1,6 @@
 #include "img.h"
 
 #include "gpio.h"
-#include "pwm.h"
 #include "init.h"
 
 #include <iostream>
@@ -82,13 +81,6 @@ static int color_distance_percent(cv::Vec3i& avgA, cv::Vec3i& avgB)
     return cv::sqrt(abs(percents[0]) + abs(percents[1]) + abs(percents[2]));
 }
 
-static void rgb_reference_average_color(cv::Vec3i& ref_avg)
-{
-    pwm_set_duty_cycle(r, ref_avg[2]);
-    pwm_set_duty_cycle(g, ref_avg[1]);
-    pwm_set_duty_cycle(b, ref_avg[0]);
-}
-
 extern "C" void do_image_recognition(bool should_do)
 {
     mtx_lock(&img_mtx);
@@ -132,7 +124,6 @@ extern "C" int img_thread(void *arg)
         fprintf(stderr, "CAP_PROP_BUFFERSIZE unsupported\n");
 
     std::cout << "frames retrieved\n";
-    rgb_reference_average_color(red);
     mtx_unlock(&init_mtx);
 
     while(true) {
@@ -163,11 +154,9 @@ extern "C" int img_thread(void *arg)
             }
         }
         // (255, 0, 0) if there was no match
-        rgb_reference_average_color(ref_avg);
         timespec one_sec;
         one_sec.tv_sec = 1;
         thrd_sleep(&one_sec, NULL);
-        rgb_reference_average_color(red);
 
         img_need_doing = false;
         mtx_unlock(&img_mtx);
