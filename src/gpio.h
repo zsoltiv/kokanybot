@@ -19,20 +19,9 @@ enum {
 };
 
 extern struct gpiod_chip *chip;
-extern struct gpiod_line *left_en,
-                  *left_positive,
-                  *left_negative;
-extern struct gpiod_line *right_en,
-                  *right_positive,
-                  *right_negative;
-
-extern struct pwm *r,
-                  *g,
-                  *b;
 
 void gpio_init(void);
 void gpio_cleanup(void);
-struct gpiod_chip *gpio_get_chip(void);
 
 void motor_forward(bool pressed);
 void motor_backward(bool pressed);

@@ -106,11 +106,6 @@ void gpio_cleanup(void)
     if(chip) gpiod_chip_close(chip);
 }
 
-struct gpiod_chip *gpio_get_chip(void)
-{
-    return chip;
-}
-
 void motor_forward(bool pressed)
 {
     gpiod_line_set_value(m1_negative,  GPIO_LOW);
