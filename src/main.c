@@ -7,18 +7,16 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <linux/input-event-codes.h>
 
 #include "net.h"
 #include "stream.h"
-#include "img.h"
-#include "init.h"
 #include "pca9685.h"
 #include "gpio.h"
 #include "motor.h"
 #include "input.h"
 #include "servo.h"
 
-mtx_t init_mtx;
 int servo_pins[] = {11, 12, 13, 14, 15};
 
 void stop(bool unused)
@@ -54,14 +52,13 @@ void move_servo_backward(bool pressed)
 }
 
 struct key_bind key_binds[INPUT_KEY_BINDS] = {
-    { .key = 'w', .func =        motor_forward },
-    { .key = 'a', .func =           motor_left },
-    { .key = 's', .func =       motor_backward },
-    { .key = 'd', .func =          motor_right },
-    { .key = ' ', .func = do_image_recognition },
-    { .key = 'r', .func =                 stop },
-    { .key = 'e', .func = move_servo_forward   },
-    { .key = 'q', .func = move_servo_backward  },
+    { .key =     KEY_W, .func =        motor_forward },
+    { .key =     KEY_A, .func =           motor_left },
+    { .key =     KEY_S, .func =       motor_backward },
+    { .key =     KEY_D, .func =          motor_right },
+    { .key =     KEY_R, .func =                 stop },
+    { .key =     KEY_E, .func = move_servo_forward   },
+    { .key =     KEY_Q, .func = move_servo_backward  },
     SERVO_SELECT_BIND(1),
     SERVO_SELECT_BIND(2),
     SERVO_SELECT_BIND(3),
@@ -71,23 +68,13 @@ struct key_bind key_binds[INPUT_KEY_BINDS] = {
 
 int main(void)
 {
-    //gpio_init();
-    //pca9685_init();
+    gpio_init();
     input_init();
     int listener = net_listener_new(1337);
     int client = net_accept(listener);
-    //sth = servo_thread_init(servo_pins);
-    mtx_init(&init_mtx, mtx_plain);
-    if(thrd_create(&img_thrd, img_thread, NULL) != thrd_success) {
-        fprintf(stderr, "thrd_create elbukott\n");
-    }
     printf("Up and running\n");
-    mtx_lock(&init_mtx);
-    while(1) { // robot loop
+    while(1) {
         uint8_t keycode = net_receive_keypress(client);
         input_process_key_event(keycode);
     }
-    mtx_unlock(&init_mtx);
-
-    thrd_join(img_thrd, NULL);
 }

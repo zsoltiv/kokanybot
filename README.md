@@ -4,7 +4,7 @@ Ez a repo tartalmaz minden szoftverrel kapcsolatos információt a 2023-as MIRK-
 
 ## Csomagok
 ```
-sudo apt install git make autoconf autoconf-archive gcc gpiod libgpiod-dev ffmpeg libopencv-dev libi2c-dev libinput10 libinput-dev
+sudo apt install git make autoconf autoconf-archive gcc gpiod libgpiod-dev ffmpeg libi2c-dev libinput10 libinput-dev
 ```
 
 ## OS
