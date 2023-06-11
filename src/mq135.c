@@ -46,8 +46,8 @@ int mq135_thread(void *arg)
 
     while(true) {
         gpiod_line_event_wait(sensor->line, NULL);
-        mtx_lock(&sensor->lock);
         gpiod_line_event_read(sensor->line, &ev);
+        mtx_lock(&sensor->lock);
         sensor->gas_present = ev.event_type == GPIOD_LINE_EVENT_FALLING_EDGE;
         mtx_unlock(&sensor->lock);
     }
