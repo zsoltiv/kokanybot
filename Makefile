@@ -1,5 +1,5 @@
 CC = cc
-STDC = -std=c11
+STDC = -std=c17
 CFLAGS = -g -D_XOPEN_SOURCE=700 -O0
 LDFLAGS = -li2c -lpthread `pkg-config --libs opencv4 libgpiod libavcodec libavformat libavutil`
 
