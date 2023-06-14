@@ -13,6 +13,7 @@
 #include "stream.h"
 #include "pca9685.h"
 #include "gpio.h"
+#include "i2c.h"
 #include "motor.h"
 #include "input.h"
 #include "servo.h"
@@ -69,6 +70,7 @@ struct key_bind key_binds[INPUT_KEY_BINDS] = {
 int main(void)
 {
     gpio_init();
+    i2c_init();
     input_init();
     int listener = net_listener_new(1337);
     int client = net_accept(listener);

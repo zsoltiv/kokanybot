@@ -9,6 +9,7 @@
 #include <linux/i2c-dev.h>
 #include <i2c/smbus.h>
 
+#include "i2c.h"
 #include "pca9685.h"
 
 /*
@@ -23,8 +24,6 @@
 #define PCA9685_OSCILLIATOR 25000000u
 #define MODE1_SLEEP (1u << 3)
 #define MODE1_RESTART (1u << 7)
-
-int pca9685;
 
 static inline uint8_t pin(int n)
 {
@@ -46,24 +45,14 @@ static uint8_t calculate_prescale(int freq)
 
 void pca9685_init(void)
 {
-    pca9685 = open("/dev/i2c-1", O_RDWR);
-    if(pca9685 < 0) {
-        perror("open()");
-    }
-
-    if(ioctl(pca9685, I2C_SLAVE, PCA9685_ADDR)) {
+    if(ioctl(i2c, I2C_SLAVE, PCA9685_ADDR)) {
         perror("ioctl()");
     }
 
-    i2c_smbus_write_byte_data(pca9685, PCA9685_MODE1, MODE1_SLEEP);
-    i2c_smbus_write_byte_data(pca9685, PCA9685_PRESCALE, calculate_prescale(50));
+    i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, MODE1_SLEEP);
+    i2c_smbus_write_byte_data(i2c, PCA9685_PRESCALE, calculate_prescale(50));
     nanosleep(&(struct timespec) {.tv_nsec = 500000}, NULL);
-    i2c_smbus_write_byte_data(pca9685, PCA9685_MODE1, 0x1);
-}
-
-void pca9685_cleanup(void)
-{
-    close(pca9685);
+    i2c_smbus_write_byte_data(i2c, PCA9685_MODE1, 0x1);
 }
 
 void pca9685_pin_set(int n, int degrees)
@@ -75,9 +64,9 @@ void pca9685_pin_set(int n, int degrees)
 
     uint8_t p = pin(n);
     uint16_t pwm = deg_to_pwm(degrees);
-    if(i2c_smbus_write_byte_data(pca9685, p + 0, pwm & 0xFF) < 0 ||
-       i2c_smbus_write_byte_data(pca9685, p + 1, pwm >> 8) < 0 ||
-       i2c_smbus_write_byte_data(pca9685, p + 2, 0) < 0 ||
-       i2c_smbus_write_byte_data(pca9685, p + 3, 0) < 0)
+    if(i2c_smbus_write_byte_data(i2c, p + 0, pwm & 0xFF) < 0 ||
+       i2c_smbus_write_byte_data(i2c, p + 1, pwm >> 8) < 0 ||
+       i2c_smbus_write_byte_data(i2c, p + 2, 0) < 0 ||
+       i2c_smbus_write_byte_data(i2c, p + 3, 0) < 0)
         perror("i2c_smbus_write_word_data()");
 }
