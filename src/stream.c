@@ -18,9 +18,9 @@ void stream_init(void)
     avformat_network_init();
     camera = avformat_alloc_context();
     AVDictionary *input_opts = NULL;
-    av_dict_set(&input_opts, "video_size", "1920x1080", 0);
-    av_dict_set(&input_opts, "pixe_fmt", "yuv420p", 0);
-    const AVInputFormat *h264 = av_find_input_format("h264");
+    av_dict_set(&input_opts, "video_size", "1280x720", 0);
+    av_dict_set(&input_opts, "pix_fmt", "mjpeg", 0);
+    AVInputFormat *h264 = av_find_input_format("h264");
     if(!h264)
         fprintf(stderr, "FFmpeg doesn't support h264\n");
     int ret = avformat_open_input(&camera, STREAM_DEV, h264, &input_opts);
@@ -31,7 +31,7 @@ void stream_init(void)
     AVStream *video = camera->streams[0];
     assert(video->codecpar->codec_type == AVMEDIA_TYPE_VIDEO);
 
-    const AVOutputFormat *mpegts = av_guess_format("mpegts", NULL, NULL);
+    AVOutputFormat *mpegts = av_guess_format("mpegts", NULL, NULL);
     if(!mpegts)
         fprintf(stderr, "FFmpeg doesn't support mpegts\n");
     avformat_alloc_output_context2(&out, mpegts, NULL, STREAM_REMOTE);
