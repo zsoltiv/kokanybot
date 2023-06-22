@@ -10,8 +10,8 @@
 #include "i2c.h"
 #include "mcp23017.h"
 
-#define LOW_BYTE(x) ((uint8_t)((x) & 0x00FF))
-#define HIGH_BYTE(x) ((uint8_t)((x) & 0xFF00))
+#define LOW_BYTE(x)  ((uint8_t)((x) & 0x00FF))
+#define HIGH_BYTE(x) ((uint8_t)((x) >> 8))
 
 struct mcp23017 {
     unsigned addr;
@@ -21,14 +21,13 @@ struct mcp23017 {
 
 // relevant registers
 enum mcp23017_reg {
-    IODIRA = 0x0u,
-    IODIRB = 0x1u,
-    IPOLA = 0x2u,
-    IPOLB = 0x3u,
-    IOCON_LOW = 0x0Au,
-    IOCON_HIGH = 0x0Bu,
-    GPIOA = 0x12u,
-    GPIOB = 0x13u,
+    // IOCON.BANK = 0
+    IODIRA = 0x00,
+    IODIRB = 0x01,
+    IPOLA  = 0x02,
+    IPOLB  = 0x03,
+    GPIOA  = 0x12,
+    GPIOB  = 0x13,
 };
 
 struct mcp23017 *mcp23017_init(unsigned addr)
@@ -47,7 +46,7 @@ struct mcp23017 *mcp23017_init(unsigned addr)
     i2c_smbus_write_byte_data(i2c, IPOLB, 0x0);
     ic->pins = 0;
     i2c_smbus_write_byte_data(i2c, GPIOA, LOW_BYTE(ic->pins));
-    i2c_smbus_write_byte_data(i2c, GPIOA, HIGH_BYTE(ic->pins));
+    i2c_smbus_write_byte_data(i2c, GPIOB, HIGH_BYTE(ic->pins));
 
     return ic;
 }
@@ -55,6 +54,8 @@ struct mcp23017 *mcp23017_init(unsigned addr)
 void mcp23017_set(struct mcp23017 *ic, unsigned pin, bool value)
 {
     ic->pins = (ic->pins & ~(1u << pin)) | (value << pin);
-    i2c_smbus_write_byte_data(i2c, GPIOA, LOW_BYTE(ic->pins));
-    i2c_smbus_write_byte_data(i2c, GPIOA, HIGH_BYTE(ic->pins));
+    if(i2c_smbus_write_byte_data(i2c, GPIOA, LOW_BYTE(ic->pins)) < 0)
+        perror("i2c_smbus_write_byte_data");
+    if(i2c_smbus_write_byte_data(i2c, GPIOB, HIGH_BYTE(ic->pins)) < 0)
+        perror("i2c_smbus_write_byte_data");
 }
