@@ -25,9 +25,10 @@ $(BUILDDIR)/%.c.o: $(SRCDIR)/%.c
 clean:
 	rm -rf $(BUILDDIR) $(BIN)
 
-install: $(BIN)
+install: all
 	cp $(BIN) /usr/bin/$(BIN)
 	cp kokanybot.service /etc/systemd/system
-
-run: all
-	./$(BIN)
+	cp kokanystream.sh /usr/bin
+	cp kokanystream.service /etc/systemd/system
+	systemctl enable kokanybot.service
+	systemctl enable kokanystream.service
