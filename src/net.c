@@ -1,6 +1,7 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -12,7 +13,7 @@
 
 #define INTERFACE_NAME "wlan0"
 
-int net_listener_new(int port)
+void net_get_interface_addr(struct sockaddr *out)
 {
     struct ifaddrs *interfaces;
     if(getifaddrs(&interfaces) < 0)
@@ -27,19 +28,20 @@ int net_listener_new(int port)
             break;
     } while((ifap = ifap->ifa_next));
 
+    memcpy(out, ifap->ifa_addr, sizeof(struct sockaddr));
+    freeifaddrs(interfaces);
+}
+
+int net_listener_new(struct sockaddr *saddr, int port)
+{
     /* EVIL we use an alias of a different type to set the port */
-    struct sockaddr_in *inaddr = (struct sockaddr_in *)ifap->ifa_addr;
-    char buf[INET_ADDRSTRLEN + 1] = {0};
-    inet_ntop(AF_INET, &inaddr->sin_addr, buf, sizeof(buf) - 1);
-    printf("IP address is %s\n", buf);
+    struct sockaddr_in *inaddr = (struct sockaddr_in *)saddr;
     inaddr->sin_port = port;
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     int yes = 1;
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-    if(bind(sock, ifap->ifa_addr, sizeof(struct sockaddr_in)) < 0)
+    if(bind(sock, saddr, sizeof(struct sockaddr_in)) < 0)
         perror("bind()");
-
-    freeifaddrs(interfaces);
 
     if(listen(sock, 0) < 0)
         perror("listen()");
@@ -63,10 +65,8 @@ int net_accept(int listener)
 uint8_t net_receive_keypress(int client)
 {
     uint8_t keycode;
-    if(recv(client, &keycode, 1, 0) != sizeof(keycode))
+    if(recv(client, &keycode, 1, MSG_WAITALL) != sizeof(keycode))
         perror("recv()");
-
-    printf("KEYCODE IS %u\tPRESSED %u\n", keycode & 0x7F, !!(keycode & 0x80));
 
     return keycode;
 }
