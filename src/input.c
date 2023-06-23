@@ -38,6 +38,5 @@ void input_process_key_event(uint8_t keycode)
             key_binds[state_idx].func(key_state);
             key_binds[state_idx].prev_state = key_state;
         }
-    } else
-        fprintf(stderr, "rossz gomb\n");
+    }
 }

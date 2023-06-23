@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <threads.h>
@@ -34,6 +35,8 @@ int main(void)
     printf("Up and running\n");
     while(1) {
         uint8_t keycode = net_receive_keypress(client);
+        if(!keycode && errno == ECONNRESET)
+            client = net_accept(listener);
         input_process_key_event(keycode);
     }
 }

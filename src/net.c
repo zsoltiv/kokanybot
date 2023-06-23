@@ -16,8 +16,10 @@
 void net_get_interface_addr(struct sockaddr *out)
 {
     struct ifaddrs *interfaces;
-    if(getifaddrs(&interfaces) < 0)
+    if(getifaddrs(&interfaces) < 0) {
         perror("getifaddrs()");
+        exit(1);
+    }
 
     struct ifaddrs *ifap = interfaces;
     do {
@@ -65,8 +67,10 @@ int net_accept(int listener)
 uint8_t net_receive_keypress(int client)
 {
     uint8_t keycode;
-    if(recv(client, &keycode, 1, MSG_WAITALL) != sizeof(keycode))
+    if(recv(client, &keycode, 1, 0) < 0) {
         perror("recv()");
+        return 0;
+    }
 
     return keycode;
 }
