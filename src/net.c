@@ -67,10 +67,8 @@ int net_accept(int listener)
 uint8_t net_receive_keypress(int client)
 {
     uint8_t keycode;
-    if(recv(client, &keycode, 1, 0) < 0) {
+    if(recv(client, &keycode, 1, 0) < sizeof(keycode))
         perror("recv()");
-        return 0;
-    }
 
     return keycode;
 }
