@@ -26,16 +26,6 @@
 #include "net.h"
 #include "input.h"
 
-static int get_key_bind_index(uint8_t key)
-{
-    for(int i = 0; i < sizeof(key_binds) / sizeof(key_binds[0]); i++) {
-        if(key_binds[i].key == key)
-            return i;
-    }
-
-    return -1;
-}
-
 static bool is_key_pressed(uint8_t keycode)
 {
     // highest bit indicates whether the key has been pressed
@@ -50,12 +40,10 @@ void input_init(void)
 
 void input_process_key_event(uint8_t keycode)
 {
-    int state_idx = get_key_bind_index(keycode & 0x7F); // discard MSB
-    if(state_idx > -1) {
-        bool key_state = is_key_pressed(keycode);
-        if(key_state != key_binds[state_idx].prev_state) {
-            key_binds[state_idx].func(key_state);
-            key_binds[state_idx].prev_state = key_state;
-        }
+    bool key_state = is_key_pressed(keycode);
+    keycode &= 0x7F; // discard MSB
+    if(key_state != key_binds[keycode].prev_state) {
+        key_binds[keycode].func(key_state);
+        key_binds[keycode].prev_state = key_state;
     }
 }

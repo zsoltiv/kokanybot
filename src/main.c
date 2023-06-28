@@ -34,11 +34,11 @@
 #include "motor.h"
 #include "input.h"
 
-struct key_bind key_binds[INPUT_KEY_BINDS] = {
-    { .key =     'w', .func =        motor_forward },
-    { .key =     'a', .func =           motor_left },
-    { .key =     's', .func =       motor_backward },
-    { .key =     'd', .func =          motor_right },
+struct key_bind key_binds[UINT8_MAX] = {
+    ['w'] = { .func =  motor_forward },
+    ['a'] = { .func =     motor_left },
+    ['s'] = { .func = motor_backward },
+    ['d'] = { .func =    motor_right },
 };
 
 int main(void)
