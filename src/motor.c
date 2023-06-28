@@ -23,12 +23,12 @@
 #include "offsets.h"
 #include "motor.h"
 
-struct gpiod_line        *m1_en,
-                   *m1_positive,
-                   *m1_negative,
-                         *m2_en,
-                   *m2_positive,
-                   *m2_negative;
+static struct gpiod_line       *m1_en,
+                         *m1_positive,
+                         *m1_negative,
+                               *m2_en,
+                         *m2_positive,
+                         *m2_negative;
 
 static struct gpiod_line *motorpin_init(unsigned int offset)
 {
