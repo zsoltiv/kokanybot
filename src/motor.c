@@ -52,9 +52,9 @@ void motor_init(void)
     m1_en        = motorpin_init(GPIO_GCLK);
     m1_positive  = motorpin_init(GPIO17);
     m1_negative  = motorpin_init(GPIO27);
-    m2_en        = motorpin_init(GPIO22);
-    m2_positive  = motorpin_init(GPIO23);
-    m2_negative  = motorpin_init(GPIO24);
+    m2_positive  = motorpin_init(GPIO22);
+    m2_negative  = motorpin_init(GPIO23);
+    m2_en        = motorpin_init(GPIO24);
 
     gpiod_line_set_value(m1_en, GPIO_HIGH);
     gpiod_line_set_value(m2_en, GPIO_HIGH);
