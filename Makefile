@@ -26,6 +26,8 @@ clean:
 	rm -rf $(BUILDDIR) $(BIN)
 
 install: all
+	systemctl stop kokanybot.service
+	systemctl stop kokanystream.service
 	cp $(BIN) /usr/bin/$(BIN)
 	cp kokanybot.service /etc/systemd/system
 	cp kokanystream.sh /usr/bin
