@@ -24,11 +24,12 @@
 extern "C" {
 #endif
 
+#include <sys/types.h>
+
 struct mq135;
-bool mq135_get_presence(struct mq135 *sensor);
+
+struct mq135 *mq135_init(struct sockaddr *sa, unsigned port, unsigned pin);
 int mq135_thread(void *arg);
-void mq135_lock(struct mq135 *sensor);
-void mq135_unlock(struct mq135 *sensor);
 bool mq135_get_presence(struct mq135 *sensor);
 
 #ifdef __cplusplus
