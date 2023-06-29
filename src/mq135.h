@@ -28,7 +28,7 @@ extern "C" {
 
 struct mq135;
 
-struct mq135 *mq135_init(struct sockaddr *sa, unsigned port, unsigned pin);
+struct mq135 *mq135_init(unsigned port, unsigned pin);
 int mq135_thread(void *arg);
 bool mq135_get_presence(struct mq135 *sensor);
 
