@@ -21,18 +21,20 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <string.h>
 #include <ifaddrs.h>
 #include <netdb.h>
+#include <errno.h>
 
 #include "net.h"
 
 #define INTERFACE_NAME "wlan0"
 
-void net_get_interface_addr(struct sockaddr *out)
+static struct ifaddrs *net_get_interface_addr(void)
 {
     struct ifaddrs *interfaces;
     if(getifaddrs(&interfaces) < 0) {
@@ -48,37 +50,54 @@ void net_get_interface_addr(struct sockaddr *out)
            ifap->ifa_addr->sa_family == AF_INET)
             break;
     } while((ifap = ifap->ifa_next));
+    if(!ifap) {
+        fprintf(stderr, "%s not found, exiting\n", INTERFACE_NAME);
+        exit(1);
+    }
 
-    memcpy(out, ifap->ifa_addr, sizeof(struct sockaddr));
+    struct ifaddrs *interface = malloc(sizeof(struct ifaddrs));
+    memcpy(interface, ifap, sizeof(struct ifaddrs));
     freeifaddrs(interfaces);
+
+    return interface;
 }
 
-int net_listener_new(struct sockaddr *saddr, int port)
+int net_accept(int port)
 {
-    /* EVIL we use an alias of a different type to set the port */
-    struct sockaddr_in *inaddr = (struct sockaddr_in *)saddr;
-    inaddr->sin_port = port;
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    struct ifaddrs *interface = net_get_interface_addr();
+    struct sockaddr_in *iaddr = (struct sockaddr_in *)interface->ifa_addr;
+    iaddr->sin_port = htons(port);
+    int listener = socket(iaddr->sin_family, SOCK_STREAM, 0);
+    if(listener < 0)
+        perror("socket()");
     int yes = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-    if(bind(sock, saddr, sizeof(struct sockaddr_in)) < 0)
+    if(setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+        perror("setsockopt");
+        exit(1);
+    }
+    if(bind(listener, (struct sockaddr *)iaddr, sizeof(struct sockaddr_in)) < 0) {
         perror("bind()");
-
-    if(listen(sock, 0) < 0)
+        exit(1);
+    }
+    if(listen(listener, 1) < 0) {
         perror("listen()");
-
-    return sock;
-}
-
-int net_accept(int listener)
-{
-    struct sockaddr_storage client_addr;
-    socklen_t client_addr_len = sizeof(client_addr);
+        exit(1);
+    }
+    char addrstr[INET_ADDRSTRLEN] = {0};
+    if(!inet_ntop(AF_INET, &iaddr->sin_addr, addrstr, sizeof(addrstr))) {
+        perror("inet_ntop()");
+        exit(1);
+    }
+    printf("Listening on %s:%u\n", addrstr, port);
     int client = accept(listener,
-                        (struct sockaddr *)&client_addr,
-                        &client_addr_len);
-    if(client < 0)
+                        NULL,
+                        NULL);
+    if(client < 0) {
         perror("accept()");
+        exit(1);
+    }
+    close(listener);
+    free(interface);
 
     return client;
 }
@@ -86,8 +105,12 @@ int net_accept(int listener)
 uint8_t net_receive_keypress(int client)
 {
     uint8_t keycode;
-    if(recv(client, &keycode, 1, 0) < sizeof(keycode))
-        perror("recv()");
+    if(recv(client, &keycode, 1, 0) < sizeof(keycode)) {
+        if(errno) {
+            perror("recv()");
+            exit(1);
+        }
+    }
 
     return keycode;
 }
