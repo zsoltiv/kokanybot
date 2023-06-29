@@ -28,11 +28,16 @@
 #include <errno.h>
 #include <string.h>
 
+#include "offsets.h"
 #include "net.h"
 #include "gpio.h"
 #include "i2c.h"
 #include "motor.h"
+#include "mq135.h"
 #include "input.h"
+
+#define PORT_CTL 1337
+#define PORT_SENSOR 1339
 
 struct key_bind key_binds[UINT8_MAX] = {
     ['w'] = { .func =  motor_forward },
@@ -44,18 +49,16 @@ struct key_bind key_binds[UINT8_MAX] = {
 int main(void)
 {
     input_init();
-    struct sockaddr_in inaddr;
-    net_get_interface_addr((struct sockaddr *)&inaddr);
-    int listener = net_listener_new((struct sockaddr *)&inaddr, 1337);
-    int client = net_accept(listener);
     gpio_init();
     motor_init();
     i2c_init();
+    struct mq135 *mq135 = mq135_init(PORT_SENSOR, GPIO16);
+    int client = net_accept(PORT_CTL);
     printf("Up and running\n");
     while(1) {
         uint8_t keycode = net_receive_keypress(client);
         if(!keycode && errno == ECONNRESET)
-            client = net_accept(listener);
+            client = net_accept(PORT_CTL);
         input_process_key_event(keycode);
     }
 }
