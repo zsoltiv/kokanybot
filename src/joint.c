@@ -64,14 +64,6 @@ static unsigned stepper_mcp_pins[4][4] = {
     { 12, 13, 14, 15 },
 };
 
-/* BLUE - PINK - YELLOW - ORANGE */
-static const int steps[][NPOLES] = {
-    { 1, 1, 0, 0 },
-    { 0, 1, 1, 0 },
-    { 0, 0, 1, 1 },
-    { 1, 0, 0, 1 },
-};
-
 void arm_select_joint(struct arm *arm, int joint)
 {
         mtx_lock(&arm->lock);

@@ -29,7 +29,7 @@
 */
 
 /* BLUE - PINK - YELLOW - ORANGE */
-static const int steps[][NPOLES] = {
+const int steps[][NPOLES] = {
     { 1, 1, 0, 0 },
     { 0, 1, 1, 0 },
     { 0, 0, 1, 1 },
