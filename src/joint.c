@@ -152,7 +152,7 @@ struct arm *arm_init(void)
             arm->joints[i]->stepper.mcp23017_stepper = stepper_mcp_pins[mstepper];
         }
     }
-    arm->joint_idx = 1;
+    arm->joint_idx = 0;
     arm->dir = JOINT_STILL;
 
     mtx_init(&arm->lock, mtx_plain);
