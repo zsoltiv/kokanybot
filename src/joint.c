@@ -142,7 +142,7 @@ struct arm *arm_init(void)
     for(int i = 0; i < NSTEPPERS; i++) {
         arm->joints[i] = malloc(sizeof(struct joint));
         arm->joints[i]->step_idx = 0;
-        // first five steppers fit on the gpio pins
+        // first four steppers fit on the gpio pins
         arm->joints[i]->is_gpio = i < 4;
         printf("STEPPER %d GPIO? %d\n", i, arm->joints[i]->is_gpio);
         if(arm->joints[i]->is_gpio) {
@@ -150,6 +150,7 @@ struct arm *arm_init(void)
             gstepper++;
         } else {
             arm->joints[i]->stepper.mcp23017_stepper = stepper_mcp_pins[mstepper];
+            mstepper++;
         }
     }
     arm->joint_idx = 0;
