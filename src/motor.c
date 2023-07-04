@@ -49,8 +49,8 @@ static struct gpiod_line *motorpin_init(unsigned int offset)
 
 void motor_init(void)
 {
-    m1_en        = motorpin_init(GPIO_GCLK);
-    m1_positive  = motorpin_init(GPIO17);
+    m1_en        = motorpin_init(GPIO17);
+    m1_positive  = motorpin_init(GPIO_GCLK);
     m1_negative  = motorpin_init(GPIO27);
     m2_positive  = motorpin_init(GPIO22);
     m2_negative  = motorpin_init(GPIO23);
