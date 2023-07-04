@@ -54,7 +54,7 @@ static unsigned stepper_pins[NSTEPPERS][NPOLES] = {
     { GPIO26, GPIO19, GPIO13, GPIO6 },
     { GPIO5, SPI_SCLK, SPI_MISO, SPI_MOSI },
     { GPIO21, GPIO20, GPIO12, SPI_CE1_N },
-    { SPI_CE0_N, ID_SDA, RXD0, ID_SCL },
+    { SPI_CE0_N, ID_SDA, RXD0, GPIO_GCLK },
 };
 
 static unsigned stepper_mcp_pins[NSTEPPERS][NPOLES] = {

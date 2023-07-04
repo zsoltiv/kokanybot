@@ -23,10 +23,8 @@
 #include "offsets.h"
 #include "motor.h"
 
-static struct gpiod_line       *m1_en,
-                         *m1_positive,
+static struct gpiod_line *m1_positive,
                          *m1_negative,
-                               *m2_en,
                          *m2_positive,
                          *m2_negative;
 
@@ -49,26 +47,16 @@ static struct gpiod_line *motorpin_init(unsigned int offset)
 
 void motor_init(void)
 {
-    m1_en        = motorpin_init(GPIO_GCLK);
     m1_positive  = motorpin_init(GPIO17);
     m1_negative  = motorpin_init(GPIO27);
     m2_positive  = motorpin_init(GPIO22);
     m2_negative  = motorpin_init(GPIO23);
-    m2_en        = motorpin_init(GPIO24);
-
-    gpiod_line_set_value(m1_en, GPIO_HIGH);
-    gpiod_line_set_value(m2_en, GPIO_HIGH);
 }
 
 void motor_cleanup(void)
 {
-    gpiod_line_set_value(m1_en, GPIO_LOW);
-    gpiod_line_set_value(m2_en, GPIO_LOW);
-
-    if(m1_en) gpiod_line_release(m1_en);
     if(m1_positive) gpiod_line_release(m1_positive);
     if(m1_negative) gpiod_line_release(m1_negative);
-    if(m2_en) gpiod_line_release(m2_en);
     if(m2_positive) gpiod_line_release(m2_positive);
     if(m2_negative) gpiod_line_release(m2_negative);
     if(chip) gpiod_chip_close(chip);
