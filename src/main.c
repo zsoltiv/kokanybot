@@ -105,8 +105,10 @@ int main(void)
     printf("Up and running\n");
     while(1) {
         uint8_t keycode = net_receive_keypress(client);
-        if(!keycode && errno == ECONNRESET)
+        if(!keycode && errno == ECONNRESET) {
+            close(client);
             client = net_accept(PORT_CTL);
+        }
         input_process_key_event(keycode);
     }
 }
