@@ -50,14 +50,14 @@ struct joint {
     bool is_gpio;
 };
 
-static unsigned stepper_pins[4][4] = {
+static unsigned stepper_pins[NSTEPPERS][NPOLES] = {
     { GPIO26, GPIO19, GPIO13, GPIO6 },
     { GPIO5, SPI_SCLK, SPI_MISO, SPI_MOSI },
     { GPIO21, GPIO20, GPIO12, SPI_CE1_N },
     { SPI_CE0_N, GPIO18, RXD0, TXD0 },
 };
 
-static unsigned stepper_mcp_pins[4][4] = {
+static unsigned stepper_mcp_pins[NSTEPPERS][NPOLES] = {
     {  0,  1,  2,  3 },
     {  4,  5,  6,  7 },
     {  8,  9, 10, 11 },
@@ -117,15 +117,32 @@ static int arm_thread(void *arg)
         int dir = arm->dir;
         int joint = arm->joint_idx;
         mtx_unlock(&arm->lock);
-        switch(dir) {
-            case JOINT_STILL:
-                break;
-            case JOINT_BACKWARD:
-                joint_backward(arm, joint);
-                break;
-            case JOINT_FORWARD:
-                joint_forward(arm, joint);
-                break;
+        // second and third steppers move at the same time
+        if(joint == 1 || joint == 2) {
+            int other = joint == 1 ? 2 : 1;
+            switch(dir) {
+                case JOINT_STILL:
+                    break;
+                case JOINT_BACKWARD:
+                    joint_backward(arm, joint);
+                    joint_backward(arm, other);
+                    break;
+                case JOINT_FORWARD:
+                    joint_forward(arm, joint);
+                    joint_forward(arm, other);
+                    break;
+            }
+        } else {
+            switch(dir) {
+                case JOINT_STILL:
+                    break;
+                case JOINT_BACKWARD:
+                    joint_backward(arm, joint);
+                    break;
+                case JOINT_FORWARD:
+                    joint_forward(arm, joint);
+                    break;
+            }
         }
         nanosleep(&(struct timespec) {.tv_nsec = STEP_NSEC}, NULL);
     }
