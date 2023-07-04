@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 #include <threads.h>
 #include <sys/types.h>
 
@@ -73,6 +74,8 @@ int mq135_thread(void *arg)
         sensor->gas_present = ev.event_type == GPIOD_LINE_EVENT_FALLING_EDGE;
         printf("tick %s\n", sensor->gas_present ? "GAS" : "NOGAS");
         if(send(sensor->client, &sensor->gas_present, 1, 0) < 0) {
+            if(errno == ECONNRESET)
+                sensor->client = net_accept(sensor->port);
             perror("send()");
             exit(1);
         }
