@@ -108,7 +108,6 @@ uint8_t net_receive_keypress(int client)
     if(recv(client, &keycode, 1, 0) < sizeof(keycode)) {
         if(errno) {
             perror("recv()");
-            exit(1);
         }
     }
 
