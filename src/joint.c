@@ -30,7 +30,7 @@
 #include "joint.h"
 
 #define NSTEPPERS 8
-#define STEP_NSEC 15000000
+#define STEP_NSEC 30000000
 
 struct arm {
     struct joint *joints[NSTEPPERS];
