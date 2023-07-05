@@ -133,11 +133,11 @@ static int arm_thread(void *arg)
                     break;
                 case JOINT_BACKWARD:
                     joint_backward(arm, joint);
-                    joint_backward(arm, other);
+                    joint_forward(arm, other);
                     break;
                 case JOINT_FORWARD:
                     joint_forward(arm, joint);
-                    joint_forward(arm, other);
+                    joint_backward(arm, other);
                     break;
             }
         } else {
