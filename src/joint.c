@@ -78,6 +78,20 @@ void arm_set_dir(struct arm *arm, int dir)
         mtx_unlock(&arm->lock);
 }
 
+static void joint_mcp_update(struct arm *arm, int i)
+{
+    for(int pin = 0; pin < NPOLES; pin++)
+        if(steps[arm->joints[i]->step_idx][pin])
+            mcp23017_set(arm->mcp,
+                         arm->joints[i]->stepper.mcp23017_stepper[pin],
+                        steps[arm->joints[i]->step_idx][pin]);
+    for(int pin = 0; pin < NPOLES; pin++)
+        if(!steps[arm->joints[i]->step_idx][pin])
+            mcp23017_set(arm->mcp,
+                         arm->joints[i]->stepper.mcp23017_stepper[pin],
+                        steps[arm->joints[i]->step_idx][pin]);
+}
+
 static void joint_forward(struct arm *arm, int i)
 {
     if(arm->joints[i]->is_gpio)
@@ -86,10 +100,7 @@ static void joint_forward(struct arm *arm, int i)
         arm->joints[i]->step_idx++;
         if(arm->joints[i]->step_idx == 4)
             arm->joints[i]->step_idx = 0;
-        for(int pin = 0; pin < 4; pin++)
-            mcp23017_set(arm->mcp,
-                         arm->joints[i]->stepper.mcp23017_stepper[pin],
-                         steps[arm->joints[i]->step_idx][pin]);
+        joint_mcp_update(arm, i);
     }
 }
 
@@ -101,10 +112,7 @@ static void joint_backward(struct arm *arm, int i)
         arm->joints[i]->step_idx--;
         if(arm->joints[i]->step_idx < 0)
             arm->joints[i]->step_idx = 3;
-        for(int pin = 0; pin < 4; pin++)
-            mcp23017_set(arm->mcp,
-                         arm->joints[i]->stepper.mcp23017_stepper[pin],
-                         steps[arm->joints[i]->step_idx][pin]);
+        joint_mcp_update(arm, i);
     }
 }
 

@@ -44,7 +44,11 @@ struct stepper {
 static void stepper_set_step(struct stepper *restrict stepper, int i)
 {
     for(int j = 0; j < NPOLES; j++)
-        gpiod_line_set_value(stepper->poles[j], steps[i][j]);
+        if(stepper->poles[j])
+            gpiod_line_set_value(stepper->poles[j], steps[i][j]);
+    for(int j = 0; j < NPOLES; j++)
+        if(!stepper->poles[j])
+            gpiod_line_set_value(stepper->poles[j], steps[i][j]);
     stepper->step_idx = i;
 }
 
