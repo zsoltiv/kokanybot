@@ -29,8 +29,10 @@
 #include "mcp23017.h"
 #include "joint.h"
 
-#define NSTEPPERS 8
-#define STEP_NSEC 30000000
+#define NSTEPPERS 6
+#define STEP_SLOW 30000000
+#define STEP_MEDIUM 20000000
+#define STEP_FAST 10000000
 
 struct arm {
     struct joint *joints[NSTEPPERS];
@@ -46,22 +48,31 @@ struct joint {
         struct stepper *stepper;
         unsigned *mcp23017_stepper;
     } stepper;
+    unsigned long delay;
     int step_idx;
     bool is_gpio;
 };
 
-static unsigned stepper_pins[NSTEPPERS][NPOLES] = {
+static unsigned stepper_pins[4][NPOLES] = {
     { GPIO26, GPIO19, GPIO13, GPIO6 },
     { GPIO5, SPI_SCLK, SPI_MISO, SPI_MOSI },
     { GPIO21, GPIO20, GPIO12, SPI_CE1_N },
     { SPI_CE0_N, ID_SDA, GPIO24, GPIO_GCLK },
 };
 
-static unsigned stepper_mcp_pins[NSTEPPERS][NPOLES] = {
+static unsigned stepper_mcp_pins[3][NPOLES] = {
     {  0,  1,  2,  3 },
     {  4,  5,  6,  7 },
     {  8,  9, 10, 11 },
-    { 12, 13, 14, 15 },
+};
+
+static unsigned long stepper_delays[NSTEPPERS] = {
+    STEP_SLOW,
+    STEP_MEDIUM,
+    STEP_MEDIUM,
+    STEP_SLOW,
+    STEP_SLOW,
+    STEP_SLOW,
 };
 
 void arm_select_joint(struct arm *arm, int joint)
@@ -152,7 +163,7 @@ static int arm_thread(void *arg)
                     break;
             }
         }
-        nanosleep(&(struct timespec) {.tv_nsec = STEP_NSEC}, NULL);
+        nanosleep(&(struct timespec) {.tv_nsec = arm->joints[joint]->delay}, NULL);
     }
 
     return 0;
@@ -167,6 +178,7 @@ struct arm *arm_init(void)
     for(int i = 0; i < NSTEPPERS; i++) {
         arm->joints[i] = malloc(sizeof(struct joint));
         arm->joints[i]->step_idx = 0;
+        arm->joints[i]->delay = stepper_delays[i];
         // first four steppers fit on the gpio pins
         arm->joints[i]->is_gpio = i < 4;
         printf("STEPPER %d GPIO? %d\n", i, arm->joints[i]->is_gpio);
