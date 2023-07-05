@@ -28,9 +28,13 @@ clean:
 install: all
 	systemctl stop kokanybot.service
 	systemctl stop kokanystream.service
+	systemctl stop kokanyaudio.service
 	cp $(BIN) /usr/bin/$(BIN)
 	cp kokanybot.service /etc/systemd/system
 	cp kokanystream.sh /usr/bin
 	cp kokanystream.service /etc/systemd/system
+	cp kokanyaudio.sh /usr/bin
+	cp kokanyaudio.service /etc/systemd/system
 	systemctl enable kokanybot.service
 	systemctl enable kokanystream.service
+	systemctl enable kokanyaudio.service

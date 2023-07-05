@@ -1,0 +1,16 @@
+[Unit]
+Description=Kokanybot audio script
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/kokanyaudio.sh
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
+Type=simple
+Restart=always
+StartLimitInterval=10
+
+[Install]
+WantedBy=multi-user.target
