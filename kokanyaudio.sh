@@ -1,6 +1,6 @@
 #!/bin/sh
 
-dev="wlan0"
+dev="eth0"
 port="1340"
 
 address="$(ip -4 -br a show $dev | sed -E 's/\s+/ /g ; s/\/[0-9]+//' | cut -d' ' -f 3)"
