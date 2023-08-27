@@ -29,7 +29,7 @@
 static bool is_key_pressed(uint8_t keycode)
 {
     // highest bit indicates whether the key has been pressed
-    return !!( keycode & 0x80);
+    return !!(keycode & 0x80);
 }
 
 void input_init(void)
