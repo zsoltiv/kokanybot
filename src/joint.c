@@ -54,7 +54,7 @@ struct joint {
     bool is_gpio;
 };
 
-static unsigned stepper_pins[4][NPOLES] = {
+static const unsigned stepper_pins[4][NPOLES] = {
     { GPIO26, GPIO19, GPIO13, GPIO6 },
     { GPIO5, SPI_SCLK, SPI_MISO, SPI_MOSI },
     { GPIO21, GPIO20, GPIO12, SPI_CE1_N },
@@ -67,7 +67,7 @@ static unsigned stepper_mcp_pins[3][NPOLES] = {
     {  8,  9, 10, 11 },
 };
 
-static unsigned long stepper_delays[NSTEPPERS] = {
+static const unsigned long stepper_delays[NSTEPPERS] = {
     STEP_SLOW,
     STEP_MEDIUM,
     STEP_MEDIUM,

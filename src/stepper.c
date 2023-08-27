@@ -54,7 +54,7 @@ static void stepper_set_step(struct stepper *restrict stepper, int i)
 }
 
 struct stepper *stepper_init(struct gpiod_chip *chip,
-                             unsigned int pins[static NPOLES])
+                             const unsigned int pins[static NPOLES])
 {
     struct stepper *stepper = malloc(sizeof(struct stepper));
 
