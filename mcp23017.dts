@@ -1,0 +1,30 @@
+/dts-v1/;
+/plugin/;
+
+// https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/pinctrl/pinctrl-mcp23s08.txt 
+// https://elinux.org/Device_Tree_Usage
+
+/ {
+    compatible = "brcm,bcm2835";
+
+    fragment@0 {
+        target = <&i2c1>; // /dev/i2c-1
+        __overlay__ {
+            status = "okay";
+
+            gpio@21 { // 0x21
+                compatible = "microchip,mcp23017";
+                #gpio-cells: <2>;
+                reg: <0x21>;
+                gpio-controller;
+            };
+
+            gpio@22 { // 0x22
+                compatible = "microchip,mcp23017";
+                #gpio-cells: <2>;
+                reg: <0x22>;
+                gpio-controller;
+            };
+        };
+    };
+};
