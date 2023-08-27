@@ -10,8 +10,4 @@ sudo apt install git make autoconf autoconf-archive gcc gpiod libgpiod-dev ffmpe
 ## OS
 
 Raspberry Pi OS 64 bit
-I2C, SSH, WiFi enabled
-
-```
-sudo modprobe bcm2835_v4l2
-```
+I2C, SSH enabled
