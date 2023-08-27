@@ -1,6 +1,7 @@
 # Kókánybot
 
-This repository contains the software used by Kókánybot which was built for the 2023 RoboCup RMRC league.
+This repository contains the software used by Kókánybot which is being built for the 2024 RoboCup competition.
+It's based on the previous year's code, which you can read after doing a `git checkout tags/2023`.
 
 ## Packages
 ```
