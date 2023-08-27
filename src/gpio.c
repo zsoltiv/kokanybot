@@ -24,7 +24,7 @@
 
 #include "gpio.h"
 
-struct gpiod_chip           *chip;
+struct gpiod_chip *chip;
 
 static struct gpiod_line *motorpin_init(unsigned int offset)
 {
