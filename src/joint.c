@@ -17,6 +17,7 @@
  * along with kokanybot. If not, see <https://www.gnu.org/licenses/>. 
 */
 
+#define _XOPEN_SOURCE 700
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
