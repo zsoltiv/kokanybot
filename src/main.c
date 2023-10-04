@@ -42,7 +42,6 @@
 #define PORT_SENSOR 1339
 
 static struct arm *arm;
-static int joint_idx = 1;
 
 static void joint_sel_forward(bool pressed)
 {

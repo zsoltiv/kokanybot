@@ -35,7 +35,7 @@ static bool is_key_pressed(uint8_t keycode)
 
 void input_init(void)
 {
-    for(int i = 0; i < sizeof(key_binds) / sizeof(key_binds[0]); i++)
+    for(unsigned i = 0; i < sizeof(key_binds) / sizeof(key_binds[0]); i++)
         key_binds[i].prev_state = false;
 }
 
