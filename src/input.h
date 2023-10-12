@@ -35,7 +35,7 @@ struct key_bind {
 };
 
 // WASD allapotok GPIO-hoz
-extern struct key_bind key_binds[UINT8_MAX];
+extern struct key_bind key_binds[INT8_MAX];
 
 void input_init(void);
 void input_process_key_event(uint8_t keycode);

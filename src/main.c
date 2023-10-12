@@ -76,7 +76,7 @@ STEPPER_SELECT_FUNC(6)
 STEPPER_SELECT_FUNC(7)
 STEPPER_SELECT_FUNC(8)
 
-struct key_bind key_binds[UINT8_MAX] = {
+struct key_bind key_binds[INT8_MAX] = {
     ['w'] = { .func =      motor_forward },
     ['a'] = { .func =         motor_left },
     ['s'] = { .func =     motor_backward },
