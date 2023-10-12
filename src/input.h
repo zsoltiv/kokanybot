@@ -20,8 +20,6 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include <libinput.h>
-
 #include <stdint.h>
 #include <stdbool.h>
 
