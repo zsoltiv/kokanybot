@@ -1,6 +1,6 @@
 CC ?= cc
 CFLAGS ?= -g3 -Og
-CFLAGS += -std=c17
+ALLCFLAGS = $(CFLAGS) -std=c17
 LDFLAGS += -li2c -lpthread `pkg-config --libs libgpiod`
 
 BIN = kokanybot
@@ -16,11 +16,11 @@ OBJ = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%.o,$(SRC))
 all: $(BIN)
 
 $(BIN): $(OBJ)
-	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@
+	$(CC) $^ $(ALLCFLAGS) $(LDFLAGS) -o $@
 
 $(BUILDDIR)/%.c.o: $(SRCDIR)/%.c
 	mkdir -p $(BUILDDIR)
-	$(CC) $< -c $(STDC) $(CFLAGS) -o $@
+	$(CC) $< -c $(ALLCFLAGS) -o $@
 
 clean:
 	rm -rf $(BUILDDIR) $(BIN)
