@@ -27,7 +27,7 @@
 #include "net.h"
 #include "input.h"
 
-static bool is_key_pressed(uint8_t keycode)
+static inline bool is_key_pressed(uint8_t keycode)
 {
     // highest bit indicates whether the key has been pressed
     return !!(keycode & 0x80);
