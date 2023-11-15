@@ -1,3 +1,5 @@
+Ez a branch egy régi robothoz van, amit a mai napig használunk, ezért karban kell tartani.
+
 # Kókánybot
 
 Ez a repo tartalmaz minden szoftverrel kapcsolatos információt a 2023-as MIRK-re épített Kókánybotról
