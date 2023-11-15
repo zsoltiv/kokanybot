@@ -1,6 +1,6 @@
 CC ?= cc
 CFLAGS = -g -Og
-ALLCFLAGS = $(CFLAGS) -std=c11 -D_XOPEN_SOURCE=700
+ALLCFLAGS = $(CFLAGS) -std=c17 -D_XOPEN_SOURCE=700
 LDFLAGS = -li2c -lpthread `pkg-config --libs libgpiod libudev libinput`
 
 BIN ?= kokanybot
