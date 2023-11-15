@@ -7,7 +7,6 @@
 #include <string.h>
 #include <linux/input-event-codes.h>
 
-#include "img.h"
 #include "init.h"
 #include "pca9685.h"
 #include "gpio.h"
@@ -55,7 +54,6 @@ struct key_bind key_binds[INPUT_KEY_BINDS] = {
     { .key =     KEY_A, .func =           motor_left },
     { .key =     KEY_S, .func =       motor_backward },
     { .key =     KEY_D, .func =          motor_right },
-    { .key = KEY_SPACE, .func = do_image_recognition },
     { .key =     KEY_R, .func =                 stop },
     { .key =     KEY_E, .func = move_servo_forward   },
     { .key =     KEY_Q, .func = move_servo_backward  },
@@ -73,15 +71,10 @@ int main(void)
     input_init();
     sth = servo_thread_init(servo_pins);
     mtx_init(&init_mtx, mtx_plain);
-    if(thrd_create(&img_thrd, img_thread, NULL) != thrd_success) {
-        fprintf(stderr, "thrd_create elbukott\n");
-    }
     printf("Up and running\n");
     mtx_lock(&init_mtx);
     while(1) { // robot loop
         input_receive_input();
     }
     mtx_unlock(&init_mtx);
-
-    thrd_join(img_thrd, NULL);
 }
