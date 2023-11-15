@@ -1,9 +1,9 @@
-CC = cc
-STDC = -std=c11
-CFLAGS = -g -D_XOPEN_SOURCE=700 -O0
+CC ?= cc
+CFLAGS = -g -Og
+ALLCFLAGS = $(CFLAGS) -std=c11 -D_XOPEN_SOURCE=700
 LDFLAGS = -li2c -lpthread `pkg-config --libs libgpiod libudev libinput`
 
-BIN = kokanybot
+BIN ?= kokanybot
 
 SRCDIR = src
 BUILDDIR = build
@@ -11,16 +11,16 @@ BUILDDIR = build
 SRC := $(wildcard $(SRCDIR)/*.c)
 OBJ += $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%.o,$(SRC))
 
-.PHONY: all
+.PHONY: all clean
 
 all: $(BIN)
 
 $(BIN): $(OBJ)
-	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@
+	$(CC) $^ $(ALLCFLAGS) $(LDFLAGS) -o $@
 
 $(BUILDDIR)/%.c.o: $(SRCDIR)/%.c
 	mkdir -p $(BUILDDIR)
-	$(CC) $< -c $(STDC) $(CFLAGS) -o $@
+	$(CC) $< -c $(ALLCFLAGS) -o $@
 
 clean:
 	rm -rf $(BUILDDIR) $(BIN)
