@@ -30,10 +30,14 @@
 */
 
 /* BLUE - PINK - YELLOW - ORANGE */
-const int steps[][NPOLES] = {
-    { 1, 0, 1, 0 },
+const int steps[NSTEPS][NPOLES] = {
+    { 0, 0, 0, 1 },
+    { 0, 0, 1, 1 },
+    { 0, 0, 1, 0 },
     { 0, 1, 1, 0 },
-    { 0, 1, 0, 1 },
+    { 0, 1, 0, 0 },
+    { 1, 1, 0, 0 },
+    { 1, 0, 0, 0 },
     { 1, 0, 0, 1 },
 };
 
@@ -70,7 +74,7 @@ struct stepper *stepper_init(struct gpiod_chip *chip,
 void stepper_forward(struct stepper *stepper)
 {
     int i = stepper->step_idx + 1;
-    if(i == NPOLES)
+    if(i == NSTEPS)
         i = 0;
     stepper_set_step(stepper, i);
 }
@@ -79,6 +83,6 @@ void stepper_backward(struct stepper *stepper)
 {
     int i = stepper->step_idx - 1;
     if(i < 0)
-        i = NPOLES - 1;
+        i = NSTEPS - 1;
     stepper_set_step(stepper, i);
 }

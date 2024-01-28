@@ -110,7 +110,7 @@ static void joint_forward(struct arm *arm, int i)
         stepper_forward(arm->joints[i]->stepper.stepper);
     else {
         arm->joints[i]->step_idx++;
-        if(arm->joints[i]->step_idx == 4)
+        if(arm->joints[i]->step_idx == NSTEPS)
             arm->joints[i]->step_idx = 0;
         joint_mcp_update(arm, i);
     }
@@ -123,7 +123,7 @@ static void joint_backward(struct arm *arm, int i)
     else {
         arm->joints[i]->step_idx--;
         if(arm->joints[i]->step_idx < 0)
-            arm->joints[i]->step_idx = 3;
+            arm->joints[i]->step_idx = NSTEPS - 1;
         joint_mcp_update(arm, i);
     }
 }
