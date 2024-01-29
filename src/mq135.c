@@ -33,7 +33,8 @@
 #include "mq135.h"
 
 struct mq135 {
-    struct gpiod_line *line;
+    struct gpiod_line_request *line;
+    struct gpiod_edge_event_buffer *events;
     thrd_t tid;
     int client, port;
     bool gas_present;
@@ -43,10 +44,8 @@ struct mq135 *mq135_init(unsigned port, unsigned pin)
 {
     struct mq135 *sensor = malloc(sizeof(struct mq135));
     sensor->gas_present = false;
-    sensor->line = gpiod_chip_get_line(chip, pin);
+    sensor->line = gpio_init_input_events(pin, GPIOD_LINE_EDGE_BOTH);
     sensor->port = port;
-    if(gpiod_line_request_both_edges_events(sensor->line, GPIO_CONSUMER) < 0)
-        perror("gpiod_line_request_both_edges_events()");
     thrd_create(&sensor->tid, mq135_thread, sensor);
 
     return sensor;
@@ -60,20 +59,16 @@ bool mq135_get_presence(struct mq135 *sensor)
 int mq135_thread(void *arg)
 {
     struct mq135 *sensor = (struct mq135 *)arg;
-    struct gpiod_line_event ev;
+    sensor->events = gpiod_edge_event_buffer_new(1);
 
     sensor->client = net_accept(sensor->port);
 
     while(true) {
         int ret;
-        if((ret = gpiod_line_event_wait(sensor->line, NULL)) < 1) {
-            if(ret < 0)
-                perror("gpiod_line_event_wait()");
-            continue;
-        }
-        if(gpiod_line_event_read(sensor->line, &ev) < 0)
+        if(gpiod_line_request_read_edge_events(sensor->line, sensor->events, 1) < 0)
             perror("gpiod_line_event_read()");
-        sensor->gas_present = ev.event_type == GPIOD_LINE_EVENT_FALLING_EDGE;
+        struct gpiod_edge_event *ev = gpiod_edge_event_buffer_get_event(sensor->events, 0);
+        sensor->gas_present = gpiod_edge_event_get_event_type(ev) == GPIOD_EDGE_EVENT_FALLING_EDGE;
         printf("tick %s\n", sensor->gas_present ? "GAS" : "NOGAS");
         if(send(sensor->client, &sensor->gas_present, 1, 0) < 0) {
             if(errno == ECONNRESET) {
