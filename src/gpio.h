@@ -39,6 +39,10 @@ enum {
 extern struct gpiod_chip *chip;
 
 void gpio_init(void);
+struct gpiod_line_request *gpio_init_line(size_t pin_count,
+                                          const unsigned pins[static pin_count],
+                                          enum gpiod_line_direction dir);
+struct gpiod_line_request *gpio_init_input_events(const unsigned pin, enum gpiod_line_edge events);
 
 #ifdef __cplusplus
 }

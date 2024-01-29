@@ -33,3 +33,38 @@ void gpio_init(void)
         perror("gpiod_chip_open()");
     }
 }
+
+struct gpiod_line_request *gpio_init_line(size_t pin_count,
+                                          const unsigned pins[static pin_count],
+                                          enum gpiod_line_direction dir)
+{
+    struct gpiod_request_config *req_cfg = gpiod_request_config_new();
+    gpiod_request_config_set_consumer(req_cfg, GPIO_CONSUMER);
+    struct gpiod_line_settings *line_settings = gpiod_line_settings_new();
+    gpiod_line_settings_set_direction(line_settings, dir);
+    if(dir == GPIOD_LINE_DIRECTION_OUTPUT)
+        gpiod_line_settings_set_output_value(line_settings, 0);
+    struct gpiod_line_config *line_cfg = gpiod_line_config_new();
+    gpiod_line_config_add_line_settings(line_cfg, pins, pin_count, line_settings);
+    struct gpiod_line_request *line = gpiod_chip_request_lines(chip, req_cfg, line_cfg);
+    gpiod_line_settings_free(line_settings);
+    gpiod_line_config_free(line_cfg);
+    gpiod_request_config_free(req_cfg);
+    return line;
+}
+
+struct gpiod_line_request *gpio_init_input_events(const unsigned pin, enum gpiod_line_edge events)
+{
+    struct gpiod_request_config *req_cfg = gpiod_request_config_new();
+    gpiod_request_config_set_consumer(req_cfg, GPIO_CONSUMER);
+    struct gpiod_line_settings *line_settings = gpiod_line_settings_new();
+    gpiod_line_settings_set_direction(line_settings, GPIOD_LINE_DIRECTION_INPUT);
+    gpiod_line_settings_set_edge_detection(line_settings, events);
+    struct gpiod_line_config *line_cfg = gpiod_line_config_new();
+    gpiod_line_config_add_line_settings(line_cfg, &pin, 1, line_settings);
+    struct gpiod_line_request *line = gpiod_chip_request_lines(chip, req_cfg, line_cfg);
+    gpiod_line_settings_free(line_settings);
+    gpiod_line_config_free(line_cfg);
+    gpiod_request_config_free(req_cfg);
+    return line;
+}
