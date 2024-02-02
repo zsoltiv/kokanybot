@@ -24,7 +24,7 @@
 
 #include "gpio.h"
 
-struct gpiod_chip *chip;
+struct gpiod_chip *chip, *extern_chips[NEXTERNCHIPS];
 
 void gpio_init(void)
 {
@@ -34,7 +34,8 @@ void gpio_init(void)
     }
 }
 
-struct gpiod_line_request *gpio_init_line(size_t pin_count,
+struct gpiod_line_request *gpio_init_line(struct gpiod_chip *chip,
+                                          size_t pin_count,
                                           const unsigned pins[static pin_count],
                                           enum gpiod_line_direction dir)
 {

@@ -38,7 +38,7 @@ static struct gpiod_line_request *motor_req;
 
 void motor_init(void)
 {
-    motor_req = gpio_init_line(4, motor_offsets, GPIOD_LINE_DIRECTION_OUTPUT);
+    motor_req = gpio_init_line(chip, 4, motor_offsets, GPIOD_LINE_DIRECTION_OUTPUT);
 }
 
 void motor_cleanup(void)

@@ -101,7 +101,7 @@ int main(void)
     i2c_init();
     struct mq135 *mq135 = mq135_init(PORT_SENSOR, GPIO16);
     int client = net_accept(PORT_CTL);
-    arm = arm_init();
+    //arm = arm_init();
     printf("Up and running\n");
     while(1) {
         uint8_t keycode = net_receive_keypress(client);

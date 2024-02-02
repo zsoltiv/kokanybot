@@ -30,16 +30,18 @@ extern "C" {
 
 #define GPIO_CHIP_PATH "/dev/gpiochip0"
 #define GPIO_CONSUMER "kokanybot"
+#define NEXTERNCHIPS 2
 
 enum {
     GPIO_LOW = 0,
     GPIO_HIGH,
 };
 
-extern struct gpiod_chip *chip;
+extern struct gpiod_chip *chip, *extern_chips[NEXTERNCHIPS];
 
 void gpio_init(void);
-struct gpiod_line_request *gpio_init_line(size_t pin_count,
+struct gpiod_line_request *gpio_init_line(struct gpiod_chip *chip,
+                                          size_t pin_count,
                                           const unsigned pins[static pin_count],
                                           enum gpiod_line_direction dir);
 struct gpiod_line_request *gpio_init_input_events(const unsigned pin, enum gpiod_line_edge events);

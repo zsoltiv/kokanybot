@@ -31,8 +31,6 @@ extern "C" {
 
 struct stepper;
 
-extern const int steps[][NPOLES];
-
 struct stepper *stepper_init(struct gpiod_chip *chip,
                              const unsigned int pins[static NPOLES]);
 void stepper_forward(struct stepper *stepper);

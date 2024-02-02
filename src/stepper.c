@@ -19,6 +19,7 @@
 
 #define _XOPEN_SOURCE 700
 #include <stdlib.h>
+#include <string.h>
 
 #include <gpiod.h>
 
@@ -42,18 +43,13 @@ const int steps[NSTEPS][NPOLES] = {
 };
 
 struct stepper {
-    struct gpiod_line *poles[NPOLES];
+    struct gpiod_line_request *req;
     int step_idx;
 };
 
 static void stepper_set_step(struct stepper *restrict stepper, int i)
 {
-    for(int j = 0; j < NPOLES; j++)
-        if(stepper->poles[j])
-            gpiod_line_set_value(stepper->poles[j], steps[i][j]);
-    for(int j = 0; j < NPOLES; j++)
-        if(!stepper->poles[j])
-            gpiod_line_set_value(stepper->poles[j], steps[i][j]);
+    gpiod_line_request_set_values(stepper->req, steps[i]);
     stepper->step_idx = i;
 }
 
@@ -62,10 +58,7 @@ struct stepper *stepper_init(struct gpiod_chip *chip,
 {
     struct stepper *stepper = malloc(sizeof(struct stepper));
 
-    for(int i = 0; i < NPOLES; i++) {
-        stepper->poles[i] = gpiod_chip_get_line(chip, pins[i]);
-        gpiod_line_request_output(stepper->poles[i], GPIO_CONSUMER, GPIO_LOW);
-    }
+    stepper->req = gpio_init_line(chip, NPOLES, pins, GPIOD_LINE_DIRECTION_OUTPUT);
     stepper_set_step(stepper, 0);
 
     return stepper;
