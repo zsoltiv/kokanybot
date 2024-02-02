@@ -1,7 +1,7 @@
 CC ?= cc
 CFLAGS ?= -g3 -Og
 ALLCFLAGS = $(CFLAGS) -std=c17
-LDFLAGS += -li2c -lpthread `pkg-config --libs libgpiod`
+LDFLAGS += -lpthread `pkg-config --libs libgpiod`
 
 BIN = kokanybot
 
@@ -26,9 +26,6 @@ clean:
 	rm -rf $(BUILDDIR) $(BIN)
 
 install: all
-	systemctl stop kokanybot.service
-	systemctl stop kokanystream.service
-	systemctl stop kokanyaudio.service
 	install -m 744 $(BIN) /usr/bin/$(BIN)
 	install -m 644 kokanybot.service /etc/systemd/system
 	install -m 744 kokanystream.sh /usr/bin
@@ -38,3 +35,6 @@ install: all
 	systemctl enable kokanybot.service
 	systemctl enable kokanystream.service
 	systemctl enable kokanyaudio.service
+	systemctl restart kokanybot.service
+	systemctl restart kokanystream.service
+	systemctl restart kokanyaudio.service
