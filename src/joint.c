@@ -27,7 +27,6 @@
 #include "offsets.h"
 #include "gpio.h"
 #include "stepper.h"
-#include "mcp23017.h"
 #include "joint.h"
 
 #define NSTEPPERS 6
@@ -37,7 +36,6 @@
 
 struct arm {
     struct joint *joints[NSTEPPERS];
-    struct mcp23017 *mcp;
     thrd_t tid;
     mtx_t lock;
     int joint_idx;
@@ -137,7 +135,6 @@ static int arm_thread(void *arg)
 struct arm *arm_init(void)
 {
     struct arm *arm = malloc(sizeof(struct arm));
-    arm->mcp = mcp23017_init(0x20);
     for(int i = 0; i < NSTEPPERS; i++) {
         arm->joints[i] = malloc(sizeof(struct joint));
         arm->joints[i]->delay = stepper_delays[i];

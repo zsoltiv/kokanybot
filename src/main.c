@@ -32,7 +32,6 @@
 #include "offsets.h"
 #include "net.h"
 #include "gpio.h"
-#include "i2c.h"
 #include "joint.h"
 #include "motor.h"
 #include "mq135.h"
@@ -98,7 +97,6 @@ int main(void)
     input_init();
     gpio_init();
     motor_init();
-    i2c_init();
     struct mq135 *mq135 = mq135_init(PORT_SENSOR, GPIO16);
     int client = net_accept(PORT_CTL);
     //arm = arm_init();
