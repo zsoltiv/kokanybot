@@ -25,20 +25,27 @@
 #include "offsets.h"
 #include "motor.h"
 
-static const unsigned m1_positive = GPIO17,
+static const unsigned m1_positive = GPIO24,
                       m1_negative = GPIO27,
-                      m2_positive = GPIO22,
-                      m2_negative = GPIO23;
+                      m1_en       = GPIO5,
+                      m2_positive = GPIO6,
+                      m2_negative = GPIO22,
+                      m2_en       = GPIO17;
 
 static const unsigned motor_offsets[] = {
-    m1_positive, m1_negative, m2_positive, m2_negative
+    m1_positive, m1_negative, m1_en, m2_positive, m2_negative, m2_en
 };
 
 static struct gpiod_line_request *motor_req;
 
 void motor_init(void)
 {
-    motor_req = gpio_init_line(chip, 4, motor_offsets, GPIOD_LINE_DIRECTION_OUTPUT);
+    motor_req = gpio_init_line(chip,
+                               sizeof(motor_offsets) / sizeof(motor_offsets[0]),
+                               motor_offsets,
+                               GPIOD_LINE_DIRECTION_OUTPUT);
+    gpiod_line_request_set_value(motor_req, m1_en, 1);
+    gpiod_line_request_set_value(motor_req, m2_en, 1);
 }
 
 void motor_cleanup(void)
