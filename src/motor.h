@@ -30,7 +30,6 @@ void motor_forward(bool pressed);
 void motor_backward(bool pressed);
 void motor_left(bool pressed);
 void motor_right(bool pressed);
-void motor_stop(bool pressed);
 
 #ifdef __cplusplus
 }

@@ -33,7 +33,7 @@
 
 #include "net.h"
 
-#define INTERFACE_NAME "eth0"
+#define INTERFACE_NAME "wlan0"
 
 static struct ifaddrs *net_get_interface_addr(void)
 {

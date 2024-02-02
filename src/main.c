@@ -97,7 +97,7 @@ int main(void)
     input_init();
     gpio_init();
     motor_init();
-    struct mq135 *mq135 = mq135_init(PORT_SENSOR, GPIO16);
+    struct mq135 *mq135 = mq135_init(PORT_SENSOR, GPIO26);
     int client = net_accept(PORT_CTL);
     //arm = arm_init();
     printf("Up and running\n");
