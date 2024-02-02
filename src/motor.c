@@ -25,6 +25,8 @@
 #include "offsets.h"
 #include "motor.h"
 
+#define NMOTORS 4
+
 static const unsigned m1_positive = GPIO24,
                       m1_negative = GPIO27,
                       m1_en       = GPIO5,
@@ -47,16 +49,19 @@ static const unsigned motor_offsets[] = {
 
 static struct gpiod_line_request *motor_req;
 
+static const enum gpiod_line_value values_low[NMOTORS]  = { 0, 0, 0, 0 };
+static const enum gpiod_line_value values_high[NMOTORS] = { 1, 1, 1, 1 };
+
 void motor_init(void)
 {
     motor_req = gpio_init_line(chip,
                                sizeof(motor_offsets) / sizeof(motor_offsets[0]),
                                motor_offsets,
                                GPIOD_LINE_DIRECTION_OUTPUT);
-    gpiod_line_request_set_value(motor_req, m1_en, 1);
-    gpiod_line_request_set_value(motor_req, m2_en, 1);
-    gpiod_line_request_set_value(motor_req, m3_en, 1);
-    gpiod_line_request_set_value(motor_req, m4_en, 1);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_en,m2_en,m3_en,m4_en},
+                                         values_low);
 }
 
 void motor_cleanup(void)
@@ -67,76 +72,76 @@ void motor_cleanup(void)
 
 void motor_forward(bool pressed)
 {
-    gpiod_line_request_set_value(motor_req, m1_negative, GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m2_negative, GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m3_negative, GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m4_negative, GPIO_LOW);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_negative,m2_negative,m3_negative,m4_negative},
+                                         values_low);
     if(pressed) {
-        gpiod_line_request_set_value(motor_req, m1_positive, GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m3_positive, GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m2_positive, GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m4_positive, GPIO_HIGH);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_positive,m2_positive,m3_positive,m4_positive},
+                                         values_high);
     } else {
-        gpiod_line_request_set_value(motor_req, m1_positive, GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m3_positive, GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m2_positive, GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m4_positive, GPIO_LOW);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_positive,m2_positive,m3_positive,m4_positive},
+                                         values_low);
     }
 }
 
 void motor_backward(bool pressed)
 {
-    gpiod_line_request_set_value(motor_req, m1_positive, GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m2_positive, GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m3_positive, GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m4_positive, GPIO_LOW);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_positive,m2_positive,m3_positive,m4_positive},
+                                         values_low);
     if(pressed) {
-        gpiod_line_request_set_value(motor_req, m1_negative, GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m3_negative, GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m2_negative, GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m4_negative, GPIO_HIGH);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_negative,m2_negative,m3_negative,m4_negative},
+                                         values_high);
     } else {
-        gpiod_line_request_set_value(motor_req, m1_negative, GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m3_negative, GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m2_negative, GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m4_negative, GPIO_LOW);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_negative,m2_negative,m3_negative,m4_negative},
+                                         values_low);
     }
 }
 
 void motor_left(bool pressed)
 {
-    gpiod_line_request_set_value(motor_req, m1_negative,  GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m2_positive, GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m3_negative, GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m4_positive, GPIO_LOW);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_negative,m2_positive,m3_negative,m4_positive},
+                                         values_low);
     if(pressed) {
-        gpiod_line_request_set_value(motor_req, m1_positive,  GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m3_positive,  GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m2_negative, GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m4_negative, GPIO_HIGH);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_positive,m2_negative,m3_positive,m4_negative},
+                                         values_high);
     } else {
-        gpiod_line_request_set_value(motor_req, m1_positive,  GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m3_positive,  GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m2_negative, GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m4_negative, GPIO_LOW);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_positive,m2_negative,m3_positive,m4_negative},
+                                         values_low);
     }
 }
 
 void motor_right(bool pressed)
 {
-    gpiod_line_request_set_value(motor_req, m1_positive,  GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m3_positive, GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m2_negative, GPIO_LOW);
-    gpiod_line_request_set_value(motor_req, m4_negative, GPIO_LOW);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_positive,m2_negative,m3_positive,m4_negative},
+                                         values_low);
     if(pressed) {
-        gpiod_line_request_set_value(motor_req, m1_negative,  GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m3_negative,  GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m2_positive, GPIO_HIGH);
-        gpiod_line_request_set_value(motor_req, m4_positive, GPIO_HIGH);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_negative,m2_positive,m3_negative,m4_positive},
+                                         values_high);
     } else {
-        gpiod_line_request_set_value(motor_req, m1_negative,  GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m3_negative,  GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m2_positive, GPIO_LOW);
-        gpiod_line_request_set_value(motor_req, m4_positive, GPIO_LOW);
+    gpiod_line_request_set_values_subset(motor_req,
+                                         NMOTORS,
+                                         (const unsigned[]){m1_negative,m2_positive,m3_negative,m4_positive},
+                                         values_low);
     }
 }
