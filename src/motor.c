@@ -61,7 +61,7 @@ void motor_init(void)
     gpiod_line_request_set_values_subset(motor_req,
                                          NMOTORS,
                                          (const unsigned[]){m1_en,m2_en,m3_en,m4_en},
-                                         values_low);
+                                         values_high);
 }
 
 void motor_cleanup(void)
