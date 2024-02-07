@@ -71,7 +71,7 @@ int mq135_thread(void *arg)
         sensor->gas_present = gpiod_edge_event_get_event_type(ev) == GPIOD_EDGE_EVENT_FALLING_EDGE;
         printf("tick %s\n", sensor->gas_present ? "GAS" : "NOGAS");
         if(send(sensor->client, &sensor->gas_present, 1, 0) < 0) {
-            if(errno == ECONNRESET) {
+            if(errno == ECONNRESET || errno == EPIPE) {
                 close(sensor->client);
                 sensor->client = net_accept(sensor->port);
             }
