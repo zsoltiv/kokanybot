@@ -1,0 +1,2 @@
+ACTION=="add", SUBSYSTEM=="video4linux", DRIVERS=="uvcvideo", SYMLINK+="rear-camera"
+ACTION=="add", SUBSYSTEM=="video4linux", DRIVERS=="unicam", SYMLINK+="front-camera"

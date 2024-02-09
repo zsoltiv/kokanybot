@@ -32,6 +32,7 @@ install: all
 	install -m 644 kokanystream.service /etc/systemd/system
 	install -m 744 kokanyaudio.sh /usr/bin
 	install -m 644 kokanyaudio.service /etc/systemd/system
+	install -m 660 rules/60-camera.rules /etc/udev/rules.d/60-camera.rules
 	systemctl enable kokanybot.service
 	systemctl enable kokanystream.service
 	systemctl enable kokanyaudio.service
