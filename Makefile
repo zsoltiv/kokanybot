@@ -28,14 +28,18 @@ clean:
 install: all
 	install -m 744 $(BIN) /usr/bin/$(BIN)
 	install -m 644 kokanybot.service /etc/systemd/system
-	install -m 744 kokanystream.sh /usr/bin
-	install -m 644 kokanystream.service /etc/systemd/system
+	install -m 744 kokanystream-front.sh /usr/bin
+	install -m 644 kokanystream-front.service /etc/systemd/system
+	install -m 744 kokanystream-rear.sh /usr/bin
+	install -m 644 kokanystream-rear.service /etc/systemd/system
 	install -m 744 kokanyaudio.sh /usr/bin
 	install -m 644 kokanyaudio.service /etc/systemd/system
 	install -m 660 rules/60-camera.rules /etc/udev/rules.d/60-camera.rules
 	systemctl enable kokanybot.service
-	systemctl enable kokanystream.service
+	systemctl enable kokanystream-front.service
+	systemctl enable kokanystream-rear.service
 	systemctl enable kokanyaudio.service
 	systemctl restart kokanybot.service
-	systemctl restart kokanystream.service
+	systemctl restart kokanystream-front.service
+	systemctl restart kokanystream-rear.service
 	systemctl restart kokanyaudio.service

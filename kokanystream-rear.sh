@@ -1,7 +1,7 @@
 #!/bin/sh
 
 dev="eth0"
-port="1338"
+port="1341"
 
 address="$(ip -4 -br a show $dev | sed -E 's/\s+/ /g ; s/\/[0-9]+//' | cut -d' ' -f 3)"
 echo $address

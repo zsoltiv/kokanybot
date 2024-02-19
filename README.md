@@ -5,7 +5,7 @@ It's based on the previous year's code, which you can read after doing a `git ch
 
 ## Packages
 ```
-sudo apt install git make autoconf autoconf-archive gcc gpiod libgpiod-dev ffmpeg libi2c-dev libavformat-dev libavutil-dev
+sudo apt install git make autoconf autoconf-archive gcc gpiod libgpiod-dev ffmpeg libi2c-dev libavformat-dev libavutil-dev rpicam-apps
 ```
 
 ## OS

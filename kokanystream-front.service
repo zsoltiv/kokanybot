@@ -1,0 +1,16 @@
+[Unit]
+Description=Kokanybot streamer script (front camera)
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/kokanystream-front.sh
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
+Type=simple
+Restart=always
+StartLimitInterval=10
+
+[Install]
+WantedBy=multi-user.target
