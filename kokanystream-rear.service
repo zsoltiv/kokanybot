@@ -4,7 +4,7 @@ Requires=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/kokanystream.sh
+ExecStart=/usr/bin/kokanystream-rear.sh
 StandardError=journal
 StandardOutput=journal
 StandardInput=null
