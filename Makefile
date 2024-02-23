@@ -13,7 +13,7 @@ OBJ = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%.o,$(SRC))
 
 .PHONY: clean
 
-all: $(BIN)
+all: $(BIN) kokanystepperctl.dtbo
 
 $(BIN): $(OBJ)
 	$(CC) $^ $(ALLCFLAGS) $(LDFLAGS) -o $@
@@ -21,6 +21,9 @@ $(BIN): $(OBJ)
 $(BUILDDIR)/%.c.o: $(SRCDIR)/%.c
 	mkdir -p $(BUILDDIR)
 	$(CC) $< -c $(ALLCFLAGS) -o $@
+
+kokanystepperctl.dtbo: kokanystepperctl.dts
+	dtc -I dts $< -O dtb -o $@
 
 clean:
 	rm -rf $(BUILDDIR) $(BIN)
@@ -34,7 +37,8 @@ install: all
 	install -m 644 kokanystream-rear.service /etc/systemd/system
 	install -m 744 kokanyaudio.sh /usr/bin
 	install -m 644 kokanyaudio.service /etc/systemd/system
-	install -m 660 rules/60-camera.rules /etc/udev/rules.d/60-camera.rules
+	install -m 660 rules/* /etc/udev/rules.d/
+	install -m 755 kokanystepperctl.dtbo /boot/firmware/overlays/
 	systemctl enable kokanybot.service
 	systemctl enable kokanystream-front.service
 	systemctl enable kokanystream-rear.service

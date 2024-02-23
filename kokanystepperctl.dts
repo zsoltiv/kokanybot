@@ -14,16 +14,16 @@
 
             gpio@21 { // 0x21
                 compatible = "microchip,mcp23017";
+                gpio-controller;
                 #gpio-cells = <2>;
                 reg = <0x21>;
-                gpio-controller;
             };
 
             gpio@22 { // 0x22
                 compatible = "microchip,mcp23017";
+                gpio-controller;
                 #gpio-cells = <2>;
                 reg = <0x22>;
-                gpio-controller;
             };
         };
     };
