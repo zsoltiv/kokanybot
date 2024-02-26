@@ -1,0 +1,2 @@
+ACTION=="add", SUBSYSTEM=="gpio", DRIVERS=="mcp230xx", KERNELS=="1-0021", SYMLINK+="kokanystepperctl0"
+ACTION=="add", SUBSYSTEM=="gpio", DRIVERS=="mcp230xx", KERNELS=="1-0022", SYMLINK+="kokanystepperctl1"
