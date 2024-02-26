@@ -27,6 +27,7 @@ extern "C" {
 #include <gpiod.h>
 
 #define NPOLES 4
+#define STEPPERSPERCHIP 4
 #define NSTEPS 8
 
 struct stepper;

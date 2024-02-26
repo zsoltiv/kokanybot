@@ -24,7 +24,7 @@
 
 #include "gpio.h"
 
-struct gpiod_chip *chip, *extern_chips[NEXTERNCHIPS];
+struct gpiod_chip *chip, *stepper_chips[NEXTERNCHIPS];
 
 void gpio_init(void)
 {

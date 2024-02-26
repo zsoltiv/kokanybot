@@ -29,39 +29,37 @@
 #include "stepper.h"
 #include "joint.h"
 
-#define NSTEPPERS 6
+#define NSTEPPERS 5
 #define STEP_SLOW 30000000
 #define STEP_MEDIUM 20000000
 #define STEP_FAST 10000000
 
+struct joint {
+    struct stepper *stepper;
+    uint_least64_t delay;
+    bool direction;
+};
+
 struct arm {
-    struct joint *joints[NSTEPPERS];
+    struct joint joints[NSTEPPERS];
     thrd_t tid;
     mtx_t lock;
     int joint_idx;
     int dir;
 };
 
-struct joint {
-    struct stepper *stepper;
-    uint_least64_t delay;
-};
-
-// WARN DO NOT USE YET
-
 static const unsigned stepper_pins[NSTEPPERS][NPOLES] = {
-    { GPIO26, GPIO19, GPIO13, GPIO6 },
-    { GPIO5, SPI_SCLK, SPI_MISO, SPI_MOSI },
-    { GPIO21, GPIO20, GPIO12, SPI_CE1_N },
-    { SPI_CE0_N, ID_SDA, GPIO24, GPIO_GCLK },
+    {  0,   1,  2,  3 },
+    {  4,   5,  6,  7 },
+    {  8,   9, 10, 11 },
+    { 12,  13, 14, 15 },
+    {  0,   1,  2,  3 },
 };
-
 
 static const unsigned long stepper_delays[NSTEPPERS] = {
     STEP_SLOW,
     STEP_MEDIUM,
     STEP_MEDIUM,
-    STEP_SLOW,
     STEP_SLOW,
     STEP_SLOW,
 };
@@ -80,16 +78,6 @@ void arm_set_dir(struct arm *arm, int dir)
         mtx_unlock(&arm->lock);
 }
 
-static void joint_forward(struct arm *arm, int i)
-{
-    stepper_forward(arm->joints[i]->stepper);
-}
-
-static void joint_backward(struct arm *arm, int i)
-{
-    stepper_backward(arm->joints[i]->stepper);
-}
-
 static int arm_thread(void *arg)
 {
     struct arm *arm = (struct arm *)arg;
@@ -106,12 +94,12 @@ static int arm_thread(void *arg)
                 case JOINT_STILL:
                     break;
                 case JOINT_BACKWARD:
-                    joint_backward(arm, joint);
-                    joint_forward(arm, other);
+                    stepper_backward(arm->joints[joint].stepper);
+                    stepper_forward(arm->joints[other].stepper);
                     break;
                 case JOINT_FORWARD:
-                    joint_forward(arm, joint);
-                    joint_backward(arm, other);
+                    stepper_forward(arm->joints[joint].stepper);
+                    stepper_backward(arm->joints[other].stepper);
                     break;
             }
         } else {
@@ -119,14 +107,14 @@ static int arm_thread(void *arg)
                 case JOINT_STILL:
                     break;
                 case JOINT_BACKWARD:
-                    joint_backward(arm, joint);
+                    stepper_backward(arm->joints[joint].stepper);
                     break;
                 case JOINT_FORWARD:
-                    joint_forward(arm, joint);
+                    stepper_forward(arm->joints[joint].stepper);
                     break;
             }
         }
-        nanosleep(&(struct timespec) {.tv_nsec = arm->joints[joint]->delay}, NULL);
+        nanosleep(&(struct timespec) {.tv_nsec = arm->joints[joint].delay}, NULL);
     }
 
     return 0;
@@ -134,12 +122,17 @@ static int arm_thread(void *arg)
 
 struct arm *arm_init(void)
 {
+    stepper_chips[0] = gpiod_chip_open("/dev/kokanystepperctl0");
+    if(!stepper_chips[0])
+        perror("gpiod_chip_open");
+    stepper_chips[1] = gpiod_chip_open("/dev/kokanystepperctl1");
+    if(!stepper_chips[1])
+        perror("gpiod_chip_open");
     struct arm *arm = malloc(sizeof(struct arm));
     for(int i = 0; i < NSTEPPERS; i++) {
-        arm->joints[i] = malloc(sizeof(struct joint));
-        arm->joints[i]->delay = stepper_delays[i];
-        // first four steppers fit on the gpio pins
-        arm->joints[i]->stepper = stepper_init(chip, stepper_pins[i]);
+        arm->joints[i].delay = stepper_delays[i];
+        arm->joints[i].stepper = stepper_init(stepper_chips[i == STEPPERSPERCHIP],
+                                              stepper_pins[i]);
     }
     arm->joint_idx = 0;
     arm->dir = JOINT_STILL;

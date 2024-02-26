@@ -37,7 +37,7 @@ enum {
     GPIO_HIGH,
 };
 
-extern struct gpiod_chip *chip, *extern_chips[NEXTERNCHIPS];
+extern struct gpiod_chip *chip, *stepper_chips[NEXTERNCHIPS];
 
 void gpio_init(void);
 struct gpiod_line_request *gpio_init_line(struct gpiod_chip *chip,
