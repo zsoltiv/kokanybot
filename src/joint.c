@@ -37,7 +37,6 @@
 struct joint {
     struct stepper *stepper;
     uint_least64_t delay;
-    bool direction;
 };
 
 struct arm {
