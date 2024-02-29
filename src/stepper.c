@@ -20,6 +20,7 @@
 #define _XOPEN_SOURCE 700
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <gpiod.h>
 
@@ -49,6 +50,7 @@ struct stepper {
 
 static void stepper_set_step(struct stepper *restrict stepper, int i)
 {
+    printf("i=%d 0x%x\n", i, i);
     gpiod_line_request_set_values(stepper->req, steps[i]);
     stepper->step_idx = i;
 }

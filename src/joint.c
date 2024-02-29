@@ -67,6 +67,7 @@ void arm_select_joint(struct arm *arm, int joint)
 {
         mtx_lock(&arm->lock);
         arm->joint_idx = joint;
+        printf("joint %d selected\n", joint);
         mtx_unlock(&arm->lock);
 }
 
@@ -127,11 +128,19 @@ struct arm *arm_init(void)
     stepper_chips[1] = gpiod_chip_open("/dev/kokanystepperctl1");
     if(!stepper_chips[1])
         perror("gpiod_chip_open");
+    for(int i = 0; i < NEXTERNCHIPS; i++)
+        printf("chip %i (%p)\n", i, stepper_chips[i]);
     struct arm *arm = malloc(sizeof(struct arm));
+    int chip = 0;
     for(int i = 0; i < NSTEPPERS; i++) {
+        if(i == STEPPERSPERCHIP)
+            chip = 1;
         arm->joints[i].delay = stepper_delays[i];
-        arm->joints[i].stepper = stepper_init(stepper_chips[i == STEPPERSPERCHIP],
-                                              stepper_pins[i]);
+        if(stepper_chips[chip]) {
+            arm->joints[i].stepper = stepper_init(stepper_chips[chip],
+                                                  stepper_pins[i]);
+        }
+        printf("stepper %d (%p)\n", i, arm->joints[i].stepper);
     }
     arm->joint_idx = 0;
     arm->dir = JOINT_STILL;
