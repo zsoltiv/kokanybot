@@ -70,7 +70,7 @@ void motor_cleanup(void)
     if(chip) gpiod_chip_close(chip);
 }
 
-void motor_forward(bool pressed)
+void motor_backward(bool pressed)
 {
     gpiod_line_request_set_values_subset(motor_req,
                                          NMOTORS,
@@ -89,7 +89,7 @@ void motor_forward(bool pressed)
     }
 }
 
-void motor_backward(bool pressed)
+void motor_forward(bool pressed)
 {
     gpiod_line_request_set_values_subset(motor_req,
                                          NMOTORS,
