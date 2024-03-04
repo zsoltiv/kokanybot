@@ -39,10 +39,12 @@ install: all
 	install -m 644 kokanyaudio.service /etc/systemd/system
 	install -m 660 rules/* /etc/udev/rules.d/
 	install -m 755 kokanystepperctl.dtbo /boot/firmware/overlays/
+	install -m 644 kokanybot_dhcp.conf /etc/dnsmasq.d/
 	systemctl enable kokanybot.service
 	systemctl enable kokanystream-front.service
 	systemctl enable kokanystream-rear.service
 	systemctl enable kokanyaudio.service
+	systemctl restart dnsmasq.service
 	systemctl restart kokanybot.service
 	systemctl restart kokanystream-front.service
 	systemctl restart kokanystream-rear.service
