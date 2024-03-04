@@ -10,10 +10,12 @@ BUILDDIR = build
 
 SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%.o,$(SRC))
+DTS = $(wildcard overlays/*.dts)
+DTBOS = $(patsubst overlays/%.dts,overlays/%.dtbo,$(DTS))
 
 .PHONY: clean
 
-all: $(BIN) kokanystepperctl.dtbo
+all: $(BIN) $(DTBOS)
 
 $(BIN): $(OBJ)
 	$(CC) $^ $(ALLCFLAGS) $(LDFLAGS) -o $@
@@ -22,11 +24,11 @@ $(BUILDDIR)/%.c.o: $(SRCDIR)/%.c
 	mkdir -p $(BUILDDIR)
 	$(CC) $< -c $(ALLCFLAGS) -o $@
 
-kokanystepperctl.dtbo: kokanystepperctl.dts
+%.dtbo: %.dts
 	dtc -I dts $< -O dtb -o $@
 
 clean:
-	rm -rf $(BUILDDIR) $(BIN)
+	rm -rf $(BUILDDIR) $(BIN) $(DTBOS)
 
 install: all
 	install -m 744 $(BIN) /usr/bin/$(BIN)
@@ -38,7 +40,7 @@ install: all
 	install -m 744 kokanyaudio.sh /usr/bin
 	install -m 644 kokanyaudio.service /etc/systemd/system
 	install -m 660 rules/* /etc/udev/rules.d/
-	install -m 755 kokanystepperctl.dtbo /boot/firmware/overlays/
+	install -m 755 overlays/*.dtbo /boot/firmware/overlays/
 	install -m 644 kokanybot_dhcp.conf /etc/dnsmasq.d/
 	systemctl enable kokanybot.service
 	systemctl enable kokanystream-front.service
