@@ -32,13 +32,10 @@ clean:
 
 install: all
 	install -m 744 $(BIN) /usr/bin/$(BIN)
-	install -m 644 kokanybot.service /etc/systemd/system
+	install -m 644 system/* /etc/systemd/system/
 	install -m 744 kokanystream-front.sh /usr/bin
-	install -m 644 kokanystream-front.service /etc/systemd/system
 	install -m 744 kokanystream-rear.sh /usr/bin
-	install -m 644 kokanystream-rear.service /etc/systemd/system
 	install -m 744 kokanyaudio.sh /usr/bin
-	install -m 644 kokanyaudio.service /etc/systemd/system
 	install -m 660 rules/* /etc/udev/rules.d/
 	install -m 755 overlays/*.dtbo /boot/firmware/overlays/
 	install -m 644 kokanybot_dhcp.conf /etc/dnsmasq.d/
