@@ -11,4 +11,13 @@ sudo apt install git make autoconf autoconf-archive gcc gpiod libgpiod-dev ffmpe
 ## OS
 
 Raspberry Pi OS 64 bit
-I2C, SSH enabled
+SSH enabled
+
+### `/boot/firmware/config.txt`
+
+```
+dtparam=i2c1=on
+
+dtoverlay=kokanystepperctl
+dtoverlay=i2c-pwm-pca9685a,addr=0x40
+```
