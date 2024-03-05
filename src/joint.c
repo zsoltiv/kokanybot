@@ -21,26 +21,50 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <threads.h>
+#include <errno.h>
+
+#include <hwpwm.h>
 
 #include "offsets.h"
 #include "gpio.h"
 #include "stepper.h"
 #include "joint.h"
 
-#define NSTEPPERS 5
-#define STEP_SLOW 30000000
-#define STEP_MEDIUM 20000000
-#define STEP_FAST 10000000
+#define NSTEPPERS 1
+#define NJOINTS 6
+#define SERVO_PWM_PERIOD 20000000UL
+#define STEP_SLOW 30000000UL
+#define STEP_MEDIUM 20000000UL
+#define STEP_FAST 10000000UL
 
-struct joint {
+enum actuator_kind {
+    ACTUATOR_STEPPER,
+    ACTUATOR_SERVO,
+};
+
+struct stepper_joint {
     struct stepper *stepper;
     uint_least64_t delay;
 };
 
+struct servo_joint {
+    unsigned channel;
+    uint_fast16_t duty_cycle;
+};
+
+struct joint {
+    union {
+        struct stepper_joint stepper;
+        struct servo_joint servo;
+    } actuator;
+    enum actuator_kind kind;
+};
+
 struct arm {
-    struct joint joints[NSTEPPERS];
+    struct joint joints[NJOINTS];
     thrd_t tid;
     mtx_t lock;
     int joint_idx;
@@ -48,25 +72,19 @@ struct arm {
 };
 
 static const unsigned stepper_pins[NSTEPPERS][NPOLES] = {
-    {  0,   1,  2,  3 },
-    {  4,   5,  6,  7 },
-    {  8,   9, 10, 11 },
-    { 12,  13, 14, 15 },
-    {  0,   1,  2,  3 },
+    { 0, 1, 2,  3 },
 };
 
 static const unsigned long stepper_delays[NSTEPPERS] = {
-    STEP_SLOW,
     STEP_MEDIUM,
-    STEP_MEDIUM,
-    STEP_SLOW,
-    STEP_SLOW,
 };
+
+static const char *pwmchip = "/sys/class/pwm/pwmchip0";
 
 void arm_select_joint(struct arm *arm, int joint)
 {
         mtx_lock(&arm->lock);
-        arm->joint_idx = joint;
+        arm->joint_idx = joint >= NJOINTS ? (NJOINTS - 1) : joint;
         printf("joint %d selected\n", joint);
         mtx_unlock(&arm->lock);
 }
@@ -76,6 +94,40 @@ void arm_set_dir(struct arm *arm, int dir)
         mtx_lock(&arm->lock);
         arm->dir = dir;
         mtx_unlock(&arm->lock);
+}
+
+static void arm_joint_forward(struct arm *arm, int joint)
+{
+    if(arm->joints[joint].kind == ACTUATOR_STEPPER) {
+        stepper_forward(arm->joints[joint].actuator.stepper.stepper);
+        nanosleep(&(struct timespec) {.tv_nsec = arm->joints[joint].actuator.stepper.delay}, NULL);
+    } else {
+        printf("servo %d forward\n", joint - 1);
+        struct servo_joint *s = &arm->joints[joint].actuator.servo;
+        if(s->duty_cycle < 100)
+            s->duty_cycle += 2;
+        hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle);
+        if(errno) {
+            fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(errno));
+        }
+    }
+}
+
+static void arm_joint_backward(struct arm *arm, int joint)
+{
+    if(arm->joints[joint].kind == ACTUATOR_STEPPER) {
+        stepper_backward(arm->joints[joint].actuator.stepper.stepper);
+        nanosleep(&(struct timespec) {.tv_nsec = arm->joints[joint].actuator.stepper.delay}, NULL);
+    } else {
+        printf("servo %d backward\n", joint);
+        struct servo_joint *s = &arm->joints[joint].actuator.servo;
+        if(s->duty_cycle > 0)
+            s->duty_cycle -= 2;
+        hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle);
+        if(errno) {
+            fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(errno));
+        }
+    }
 }
 
 static int arm_thread(void *arg)
@@ -88,33 +140,16 @@ static int arm_thread(void *arg)
         int joint = arm->joint_idx;
         mtx_unlock(&arm->lock);
         // second and third steppers move at the same time
-        if(joint == 1 || joint == 2) {
-            int other = joint == 1 ? 2 : 1;
-            switch(dir) {
-                case JOINT_STILL:
-                    break;
-                case JOINT_BACKWARD:
-                    stepper_backward(arm->joints[joint].stepper);
-                    stepper_forward(arm->joints[other].stepper);
-                    break;
-                case JOINT_FORWARD:
-                    stepper_forward(arm->joints[joint].stepper);
-                    stepper_backward(arm->joints[other].stepper);
-                    break;
-            }
-        } else {
-            switch(dir) {
-                case JOINT_STILL:
-                    break;
-                case JOINT_BACKWARD:
-                    stepper_backward(arm->joints[joint].stepper);
-                    break;
-                case JOINT_FORWARD:
-                    stepper_forward(arm->joints[joint].stepper);
-                    break;
-            }
+        switch(dir) {
+            case JOINT_STILL:
+                break;
+            case JOINT_BACKWARD:
+                arm_joint_backward(arm, joint);
+                break;
+            case JOINT_FORWARD:
+                arm_joint_forward(arm, joint);
+                break;
         }
-        nanosleep(&(struct timespec) {.tv_nsec = arm->joints[joint].delay}, NULL);
     }
 
     return 0;
@@ -122,25 +157,30 @@ static int arm_thread(void *arg)
 
 struct arm *arm_init(void)
 {
-    stepper_chips[0] = gpiod_chip_open("/dev/kokanystepperctl0");
-    if(!stepper_chips[0])
-        perror("gpiod_chip_open");
-    stepper_chips[1] = gpiod_chip_open("/dev/kokanystepperctl1");
-    if(!stepper_chips[1])
-        perror("gpiod_chip_open");
-    for(int i = 0; i < NEXTERNCHIPS; i++)
-        printf("chip %i (%p)\n", i, stepper_chips[i]);
+    int ret;
     struct arm *arm = malloc(sizeof(struct arm));
-    int chip = 0;
-    for(int i = 0; i < NSTEPPERS; i++) {
-        if(i == STEPPERSPERCHIP)
-            chip = 1;
-        arm->joints[i].delay = stepper_delays[i];
-        if(stepper_chips[chip]) {
-            arm->joints[i].stepper = stepper_init(stepper_chips[chip],
-                                                  stepper_pins[i]);
+    for(int i = 0; i < NJOINTS; i++) {
+        if(i == 0) {
+            arm->joints[i].kind = ACTUATOR_STEPPER;
+            struct stepper_joint *j = &arm->joints[i].actuator.stepper;
+            j->delay = stepper_delays[i];
+            j->stepper = stepper_init(chip,
+                                      stepper_pins[i]);
+        } else {
+            arm->joints[i].kind = ACTUATOR_SERVO;
+            int chidx = i - 1;
+            struct servo_joint *s = &arm->joints[i].actuator.servo;
+            if((ret = hwpwm_chip_export(pwmchip, chidx)) < 0)
+                fprintf(stderr, "hwpwm_chip_export(): %s\n", strerror(hwpwm_error(ret)));
+            s->channel = chidx;
+            if((ret = hwpwm_channel_set_polarity(pwmchip, s->channel, HWPWM_POLARITY_NORMAL)) < 0)
+                fprintf(stderr, "hwpwm_channel_set_polarity(): %s\n", strerror(hwpwm_error(ret)));
+            if((ret = hwpwm_channel_set_period(pwmchip, s->channel, SERVO_PWM_PERIOD)) < 0)
+                fprintf(stderr, "hwpwm_channel_set_period(): %s\n", strerror(hwpwm_error(ret)));
+            s->duty_cycle = 0;
+            if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle)) < 0)
+                fprintf(stderr, "hwpwm_channel_set_duty_cycle_percent(): %s\n", strerror(hwpwm_error(ret)));
         }
-        printf("stepper %d (%p)\n", i, arm->joints[i].stepper);
     }
     arm->joint_idx = 0;
     arm->dir = JOINT_STILL;
