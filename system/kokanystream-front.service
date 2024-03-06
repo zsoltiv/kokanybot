@@ -10,7 +10,7 @@ StandardOutput=journal
 StandardInput=null
 Type=simple
 Restart=always
-StartLimitInterval=10
+StartLimitIntervalSec=100
 
 [Install]
 WantedBy=multi-user.target
