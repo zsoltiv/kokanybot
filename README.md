@@ -20,8 +20,14 @@ SSH enabled
 ### `/boot/firmware/config.txt`
 
 ```
-dtparam=i2c1=on
+dtparam=i2c_arm=on
 
 dtoverlay=kokanystepperctl
 dtoverlay=i2c-pwm-pca9685a,addr=0x40
+```
+
+### `/etc/modules-load.d/i2c.conf`
+
+```
+i2c-dev
 ```
