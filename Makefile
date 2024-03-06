@@ -1,7 +1,7 @@
 CC ?= cc
 CFLAGS ?= -g3 -Og
 ALLCFLAGS = $(CFLAGS) -std=c17
-LDFLAGS += -lpthread `pkg-config --libs libgpiod`
+LDFLAGS += -lpthread -lhwpwm `pkg-config --libs libgpiod`
 
 BIN = kokanybot
 
