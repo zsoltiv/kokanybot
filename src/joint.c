@@ -35,7 +35,7 @@
 
 #define NSTEPPERS 1
 #define NJOINTS 6
-#define SERVO_PWM_PERIOD 20000000UL
+#define MG996_PERIOD 20000000ULL
 #define STEP_SLOW 30000000UL
 #define STEP_MEDIUM 20000000UL
 #define STEP_FAST 10000000UL
@@ -100,7 +100,7 @@ static void arm_joint_forward(struct arm *arm, int joint)
 {
     if(arm->joints[joint].kind == ACTUATOR_STEPPER) {
         stepper_forward(arm->joints[joint].actuator.stepper.stepper);
-        nanosleep(&(struct timespec) {.tv_nsec = arm->joints[joint].actuator.stepper.delay}, NULL);
+        nanosleep(&(struct timespec) {.tv_sec=0,.tv_nsec=arm->joints[joint].actuator.stepper.delay}, NULL);
     } else {
         printf("servo %d forward\n", joint - 1);
         struct servo_joint *s = &arm->joints[joint].actuator.servo;
@@ -115,18 +115,17 @@ static void arm_joint_forward(struct arm *arm, int joint)
 
 static void arm_joint_backward(struct arm *arm, int joint)
 {
+    int ret;
     if(arm->joints[joint].kind == ACTUATOR_STEPPER) {
         stepper_backward(arm->joints[joint].actuator.stepper.stepper);
-        nanosleep(&(struct timespec) {.tv_nsec = arm->joints[joint].actuator.stepper.delay}, NULL);
+        nanosleep(&(struct timespec) {.tv_sec=0,.tv_nsec=arm->joints[joint].actuator.stepper.delay}, NULL);
     } else {
         printf("servo %d backward\n", joint);
         struct servo_joint *s = &arm->joints[joint].actuator.servo;
         if(s->duty_cycle > 0)
             s->duty_cycle -= 2;
-        hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle);
-        if(errno) {
-            fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(errno));
-        }
+        if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle)) < 0)
+            fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(hwpwm_error(ret)));
     }
 }
 
@@ -159,6 +158,9 @@ struct arm *arm_init(void)
 {
     int ret;
     struct arm *arm = malloc(sizeof(struct arm));
+    for(int i = 0; i < 16; i++)
+        if((ret = hwpwm_chip_unexport(pwmchip, i)) < 0)
+            fprintf(stderr, "hwpwm_chip_unexport(): %s\n", strerror(hwpwm_error(ret)));
     for(int i = 0; i < NJOINTS; i++) {
         if(i == 0) {
             arm->joints[i].kind = ACTUATOR_STEPPER;
@@ -172,14 +174,20 @@ struct arm *arm_init(void)
             struct servo_joint *s = &arm->joints[i].actuator.servo;
             if((ret = hwpwm_chip_export(pwmchip, chidx)) < 0)
                 fprintf(stderr, "hwpwm_chip_export(): %s\n", strerror(hwpwm_error(ret)));
+            if((ret = hwpwm_channel_set_enable(pwmchip, chidx, 0)) < 0)
+                fprintf(stderr, "hwpwm_channel_set_enable(): %s\n", strerror(hwpwm_error(ret)));
             s->channel = chidx;
-            if((ret = hwpwm_channel_set_polarity(pwmchip, s->channel, HWPWM_POLARITY_NORMAL)) < 0)
-                fprintf(stderr, "hwpwm_channel_set_polarity(): %s\n", strerror(hwpwm_error(ret)));
-            if((ret = hwpwm_channel_set_period(pwmchip, s->channel, SERVO_PWM_PERIOD)) < 0)
-                fprintf(stderr, "hwpwm_channel_set_period(): %s\n", strerror(hwpwm_error(ret)));
-            s->duty_cycle = 0;
-            if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle)) < 0)
-                fprintf(stderr, "hwpwm_channel_set_duty_cycle_percent(): %s\n", strerror(hwpwm_error(ret)));
+        if((ret = hwpwm_channel_set_period(pwmchip,
+                                           s->channel,
+                                           MG996_PERIOD)) < 0)
+            fprintf(stderr, "hwpwm_channel_set_period(): %s\n", strerror(hwpwm_error(ret)));
+        s->duty_cycle = 0;
+        if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip,
+                                                       s->channel,
+                                                       s->duty_cycle)) < 0)
+            fprintf(stderr, "hwpwm_channel_set_duty_cycle_percent(): %s\n", strerror(hwpwm_error(ret)));
+        if((ret = hwpwm_channel_set_enable(pwmchip, s->channel, true)) < 0)
+            fprintf(stderr, "hwpwm_channel_set_enable(): %s\n", strerror(hwpwm_error(ret)));
         }
     }
     arm->joint_idx = 0;
