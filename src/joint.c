@@ -36,7 +36,7 @@
 
 #define NJOINTS 3
 #define MG996_PERIOD 20000000ULL
-#define DUTY_CYCLE_PERCENT_STEP 0.1
+#define DUTY_CYCLE_PERCENT_STEP 0.2
 
 enum actuator_kind {
     ACTUATOR_STEPPER,
@@ -73,6 +73,12 @@ static const bool servo_invert_directions[NJOINTS] = {
     false,
     true,
     false,
+};
+
+static const double servo_default_duty_cycles[NJOINTS] = {
+    71.f,
+    28.f,
+    50.f,
 };
 
 static const char *pwmchip = "/sys/class/pwm/pwmchip0";
@@ -197,7 +203,7 @@ struct arm *arm_init(void)
             fprintf(stderr, "hwpwm_channel_set_period(): %s\n", strerror(hwpwm_error(ret)));
         if((ret = hwpwm_channel_set_polarity(pwmchip, s->channel, HWPWM_POLARITY_NORMAL)) < 0)
             fprintf(stderr, "hwpwm_channel_set_polarity(): %s\n", strerror(hwpwm_error(ret)));
-        s->duty_cycle_percent = 50;
+        s->duty_cycle_percent = servo_default_duty_cycles[i];
         if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip,
                                                        s->channel,
                                                        s->duty_cycle_percent / 10)) < 0)
