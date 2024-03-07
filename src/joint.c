@@ -25,6 +25,7 @@
 #include <time.h>
 #include <threads.h>
 #include <errno.h>
+#include <inttypes.h>
 
 #include <hwpwm.h>
 
@@ -33,13 +34,9 @@
 #include "stepper.h"
 #include "joint.h"
 
-#define NSTEPPERS 1
-#define NJOINTS 6
+#define NJOINTS 3
 #define MG996_PERIOD 20000000ULL
-#define DUTY_CYCLE_PERCENT_STEP 0.2
-#define STEP_SLOW 30000000UL
-#define STEP_MEDIUM 20000000UL
-#define STEP_FAST 10000000UL
+#define DUTY_CYCLE_PERCENT_STEP 0.1
 
 enum actuator_kind {
     ACTUATOR_STEPPER,
@@ -53,7 +50,7 @@ struct stepper_joint {
 
 struct servo_joint {
     unsigned channel;
-    double duty_cycle;
+    double duty_cycle_percent;
 };
 
 struct joint {
@@ -72,12 +69,10 @@ struct arm {
     int dir;
 };
 
-static const unsigned stepper_pins[NSTEPPERS][NPOLES] = {
-    { 0, 1, 2,  3 },
-};
-
-static const unsigned long stepper_delays[NSTEPPERS] = {
-    STEP_MEDIUM,
+static const bool servo_invert_directions[NJOINTS] = {
+    false,
+    true,
+    false,
 };
 
 static const char *pwmchip = "/sys/class/pwm/pwmchip0";
@@ -85,9 +80,25 @@ static const char *pwmchip = "/sys/class/pwm/pwmchip0";
 void arm_select_joint(struct arm *arm, int joint)
 {
         mtx_lock(&arm->lock);
-        arm->joint_idx = joint >= NJOINTS ? (NJOINTS - 1) : joint;
+        int j = 15 - joint;
+        arm->joint_idx = j >= NJOINTS ? (NJOINTS - 1) : j;
         printf("joint %d selected\n", joint);
         mtx_unlock(&arm->lock);
+}
+
+static inline int maybe_invert(struct arm *arm, int idx, int dir)
+{
+    if(servo_invert_directions[idx]) {
+        switch(dir) {
+            case JOINT_FORWARD:
+                return JOINT_BACKWARD;
+            case JOINT_BACKWARD:
+                return JOINT_FORWARD;
+            default:
+                return JOINT_STILL;
+        }
+    } else
+        return dir;
 }
 
 void arm_set_dir(struct arm *arm, int dir)
@@ -108,13 +119,12 @@ static void arm_joint_forward(struct arm *arm, int joint)
         stepper_forward(arm->joints[joint].actuator.stepper.stepper);
         nanosleep(&(struct timespec) {.tv_sec=0,.tv_nsec=arm->joints[joint].actuator.stepper.delay}, NULL);
     } else {
-        printf("servo %d forward\n", joint);
         struct servo_joint *s = &arm->joints[joint].actuator.servo;
-        if(s->duty_cycle < 100) {
-            s->duty_cycle = s->duty_cycle + DUTY_CYCLE_PERCENT_STEP;
-            printf("duty_cycle_percent=%f\n", s->duty_cycle);
+        if(s->duty_cycle_percent < 100) {
+            s->duty_cycle_percent = s->duty_cycle_percent + DUTY_CYCLE_PERCENT_STEP;
+            printf("duty_cycle_percent=%f\n", s->duty_cycle_percent);
             int ret;
-            if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle / 10)) < 0)
+            if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle_percent / 10)) < 0)
                 fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(errno));
         }
     }
@@ -129,10 +139,10 @@ static void arm_joint_backward(struct arm *arm, int joint)
     } else {
         printf("servo %d backward\n", joint);
         struct servo_joint *s = &arm->joints[joint].actuator.servo;
-        if(s->duty_cycle > 0) {
-            s->duty_cycle = s->duty_cycle - DUTY_CYCLE_PERCENT_STEP;
-            printf("duty_cycle_percent=%f\n", s->duty_cycle);
-            if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle / 10)) < 0)
+        if(s->duty_cycle_percent > 0) {
+            s->duty_cycle_percent = s->duty_cycle_percent - DUTY_CYCLE_PERCENT_STEP;
+            printf("duty_cycle_percent=%f\n", s->duty_cycle_percent);
+            if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle_percent / 10)) < 0)
                 fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(hwpwm_error(ret)));
         }
     }
@@ -147,7 +157,7 @@ static int arm_thread(void *arg)
         int dir = arm->dir;
         int joint = arm->joint_idx;
         mtx_unlock(&arm->lock);
-        switch(dir) {
+        switch(maybe_invert(arm, joint, dir)) {
             case JOINT_STILL:
                 break;
             case JOINT_BACKWARD:
@@ -167,13 +177,16 @@ struct arm *arm_init(void)
 {
     int ret;
     struct arm *arm = malloc(sizeof(struct arm));
-    for(int i = 0; i < hwpwm_chip_npwm(pwmchip); i++)
+    uint64_t npwm = hwpwm_chip_npwm(pwmchip);
+    printf("npwm=%"PRIu64"\n", npwm);
+    for(int i = 0; i < npwm; i++)
         if((ret = hwpwm_chip_unexport(pwmchip, i)) < 0)
             fprintf(stderr, "hwpwm_chip_unexport(): %s\n", strerror(hwpwm_error(ret)));
     for(int i = 0; i < NJOINTS; i++) {
         arm->joints[i].kind = ACTUATOR_SERVO;
         struct servo_joint *s = &arm->joints[i].actuator.servo;
-        s->channel = i;
+        s->channel = npwm - i - 2;
+        printf("chan=%u\n", s->channel);
         if((ret = hwpwm_chip_export(pwmchip, s->channel)) < 0)
             fprintf(stderr, "hwpwm_chip_export(): %s\n", strerror(hwpwm_error(ret)));
         if((ret = hwpwm_channel_set_enable(pwmchip, s->channel, false)) < 0)
@@ -184,10 +197,10 @@ struct arm *arm_init(void)
             fprintf(stderr, "hwpwm_channel_set_period(): %s\n", strerror(hwpwm_error(ret)));
         if((ret = hwpwm_channel_set_polarity(pwmchip, s->channel, HWPWM_POLARITY_NORMAL)) < 0)
             fprintf(stderr, "hwpwm_channel_set_polarity(): %s\n", strerror(hwpwm_error(ret)));
-        s->duty_cycle = 50;
+        s->duty_cycle_percent = 50;
         if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip,
                                                        s->channel,
-                                                       s->duty_cycle / 10)) < 0)
+                                                       s->duty_cycle_percent / 10)) < 0)
             fprintf(stderr, "hwpwm_channel_set_duty_cycle_percent(): %s\n", strerror(hwpwm_error(ret)));
         if((ret = hwpwm_channel_set_enable(pwmchip, s->channel, true)) < 0)
             fprintf(stderr, "hwpwm_channel_set_enable(): %s\n", strerror(hwpwm_error(ret)));

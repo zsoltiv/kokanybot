@@ -61,7 +61,7 @@ static void joint_sel_backward(bool pressed)
 #define JOINT_SELECT_FUNC(n) static void stepper_select_##n(bool pressed)\
 {\
     if(pressed)\
-        arm_select_joint(arm, (n) - 1);\
+        arm_select_joint(arm, 16 - (n));\
 }
 
 #define JOINT_BINDING(n) [(n) + '0'] = { .func = stepper_select_##n }
@@ -74,6 +74,7 @@ JOINT_SELECT_FUNC(5)
 JOINT_SELECT_FUNC(6)
 JOINT_SELECT_FUNC(7)
 JOINT_SELECT_FUNC(8)
+JOINT_SELECT_FUNC(9)
 
 struct key_bind key_binds[INT8_MAX] = {
     ['w'] = { .func =      motor_forward },
@@ -90,6 +91,7 @@ struct key_bind key_binds[INT8_MAX] = {
     JOINT_BINDING(6),
     JOINT_BINDING(7),
     JOINT_BINDING(8),
+    JOINT_BINDING(9),
 };
 
 int main(void)
