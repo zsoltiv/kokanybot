@@ -36,6 +36,7 @@
 #define NSTEPPERS 1
 #define NJOINTS 6
 #define MG996_PERIOD 20000000ULL
+#define DUTY_CYCLE_PERCENT_STEP 0.2
 #define STEP_SLOW 30000000UL
 #define STEP_MEDIUM 20000000UL
 #define STEP_FAST 10000000UL
@@ -52,7 +53,7 @@ struct stepper_joint {
 
 struct servo_joint {
     unsigned channel;
-    uint_fast16_t duty_cycle;
+    double duty_cycle;
 };
 
 struct joint {
@@ -96,19 +97,25 @@ void arm_set_dir(struct arm *arm, int dir)
         mtx_unlock(&arm->lock);
 }
 
+static inline void arm_sleep(void)
+{
+    nanosleep(&(struct timespec){.tv_sec=0,.tv_nsec=10000000ULL},NULL);
+}
+
 static void arm_joint_forward(struct arm *arm, int joint)
 {
     if(arm->joints[joint].kind == ACTUATOR_STEPPER) {
         stepper_forward(arm->joints[joint].actuator.stepper.stepper);
         nanosleep(&(struct timespec) {.tv_sec=0,.tv_nsec=arm->joints[joint].actuator.stepper.delay}, NULL);
     } else {
-        printf("servo %d forward\n", joint - 1);
+        printf("servo %d forward\n", joint);
         struct servo_joint *s = &arm->joints[joint].actuator.servo;
-        if(s->duty_cycle < 100)
-            s->duty_cycle += 2;
-        hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle);
-        if(errno) {
-            fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(errno));
+        if(s->duty_cycle < 100) {
+            s->duty_cycle = s->duty_cycle + DUTY_CYCLE_PERCENT_STEP;
+            printf("duty_cycle_percent=%f\n", s->duty_cycle);
+            int ret;
+            if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle / 10)) < 0)
+                fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(errno));
         }
     }
 }
@@ -122,10 +129,12 @@ static void arm_joint_backward(struct arm *arm, int joint)
     } else {
         printf("servo %d backward\n", joint);
         struct servo_joint *s = &arm->joints[joint].actuator.servo;
-        if(s->duty_cycle > 0)
-            s->duty_cycle -= 2;
-        if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle)) < 0)
-            fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(hwpwm_error(ret)));
+        if(s->duty_cycle > 0) {
+            s->duty_cycle = s->duty_cycle - DUTY_CYCLE_PERCENT_STEP;
+            printf("duty_cycle_percent=%f\n", s->duty_cycle);
+            if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle / 10)) < 0)
+                fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(hwpwm_error(ret)));
+        }
     }
 }
 
@@ -138,7 +147,6 @@ static int arm_thread(void *arg)
         int dir = arm->dir;
         int joint = arm->joint_idx;
         mtx_unlock(&arm->lock);
-        // second and third steppers move at the same time
         switch(dir) {
             case JOINT_STILL:
                 break;
@@ -149,6 +157,7 @@ static int arm_thread(void *arg)
                 arm_joint_forward(arm, joint);
                 break;
         }
+        arm_sleep();
     }
 
     return 0;
@@ -169,16 +178,16 @@ struct arm *arm_init(void)
             fprintf(stderr, "hwpwm_chip_export(): %s\n", strerror(hwpwm_error(ret)));
         if((ret = hwpwm_channel_set_enable(pwmchip, s->channel, false)) < 0)
             fprintf(stderr, "hwpwm_channel_set_enable(): %s\n", strerror(hwpwm_error(ret)));
-        if((ret = hwpwm_channel_set_period_frequency(pwmchip,
-                                                     s->channel,
-                                                     50)) < 0)
+        if((ret = hwpwm_channel_set_period(pwmchip,
+                                           s->channel,
+                                           MG996_PERIOD)) < 0)
             fprintf(stderr, "hwpwm_channel_set_period(): %s\n", strerror(hwpwm_error(ret)));
         if((ret = hwpwm_channel_set_polarity(pwmchip, s->channel, HWPWM_POLARITY_NORMAL)) < 0)
             fprintf(stderr, "hwpwm_channel_set_polarity(): %s\n", strerror(hwpwm_error(ret)));
-        s->duty_cycle = 0;
+        s->duty_cycle = 50;
         if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip,
                                                        s->channel,
-                                                       s->duty_cycle)) < 0)
+                                                       s->duty_cycle / 10)) < 0)
             fprintf(stderr, "hwpwm_channel_set_duty_cycle_percent(): %s\n", strerror(hwpwm_error(ret)));
         if((ret = hwpwm_channel_set_enable(pwmchip, s->channel, true)) < 0)
             fprintf(stderr, "hwpwm_channel_set_enable(): %s\n", strerror(hwpwm_error(ret)));

@@ -1,0 +1,23 @@
+/dts-v1/;
+/plugin/;
+
+// https://elixir.bootlin.com/linux/latest/source/Documentation/devicetree/bindings/pinctrl/pinctrl-mcp23s08.txt 
+// https://elinux.org/Device_Tree_Usage
+
+/ {
+    compatible = "brcm,bcm2835";
+
+    fragment@0 {
+        target = <&i2c1>; // /dev/i2c-1
+        __overlay__ {
+            status = "okay";
+
+            pca: pca@40 {
+                compatible = "nxp,pca9685-pwm";
+                #pwm-cells = <2>;
+                reg = <0x40>;
+                status = "okay";
+            };
+        };
+    };
+};

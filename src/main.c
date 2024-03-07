@@ -58,22 +58,22 @@ static void joint_sel_backward(bool pressed)
         arm_set_dir(arm, JOINT_STILL);
 }
 
-#define STEPPER_SELECT_FUNC(n) static void stepper_select_##n(bool pressed)\
+#define JOINT_SELECT_FUNC(n) static void stepper_select_##n(bool pressed)\
 {\
     if(pressed)\
         arm_select_joint(arm, (n) - 1);\
 }
 
-#define STEPPER_BINDING(n) [(n) + '0'] = { .func = stepper_select_##n }
+#define JOINT_BINDING(n) [(n) + '0'] = { .func = stepper_select_##n }
 
-STEPPER_SELECT_FUNC(1)
-STEPPER_SELECT_FUNC(2)
-STEPPER_SELECT_FUNC(3)
-STEPPER_SELECT_FUNC(4)
-STEPPER_SELECT_FUNC(5)
-STEPPER_SELECT_FUNC(6)
-STEPPER_SELECT_FUNC(7)
-STEPPER_SELECT_FUNC(8)
+JOINT_SELECT_FUNC(1)
+JOINT_SELECT_FUNC(2)
+JOINT_SELECT_FUNC(3)
+JOINT_SELECT_FUNC(4)
+JOINT_SELECT_FUNC(5)
+JOINT_SELECT_FUNC(6)
+JOINT_SELECT_FUNC(7)
+JOINT_SELECT_FUNC(8)
 
 struct key_bind key_binds[INT8_MAX] = {
     ['w'] = { .func =      motor_forward },
@@ -82,14 +82,14 @@ struct key_bind key_binds[INT8_MAX] = {
     ['d'] = { .func =        motor_right },
     ['q'] = { .func = joint_sel_backward },
     ['e'] = { .func =  joint_sel_forward },
-    STEPPER_BINDING(1),
-    STEPPER_BINDING(2),
-    STEPPER_BINDING(3),
-    STEPPER_BINDING(4),
-    STEPPER_BINDING(5),
-    STEPPER_BINDING(6),
-    STEPPER_BINDING(7),
-    STEPPER_BINDING(8),
+    JOINT_BINDING(1),
+    JOINT_BINDING(2),
+    JOINT_BINDING(3),
+    JOINT_BINDING(4),
+    JOINT_BINDING(5),
+    JOINT_BINDING(6),
+    JOINT_BINDING(7),
+    JOINT_BINDING(8),
 };
 
 int main(void)
