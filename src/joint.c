@@ -158,29 +158,23 @@ struct arm *arm_init(void)
 {
     int ret;
     struct arm *arm = malloc(sizeof(struct arm));
-    for(int i = 0; i < 16; i++)
+    for(int i = 0; i < hwpwm_chip_npwm(pwmchip); i++)
         if((ret = hwpwm_chip_unexport(pwmchip, i)) < 0)
             fprintf(stderr, "hwpwm_chip_unexport(): %s\n", strerror(hwpwm_error(ret)));
     for(int i = 0; i < NJOINTS; i++) {
-        if(i == 0) {
-            arm->joints[i].kind = ACTUATOR_STEPPER;
-            struct stepper_joint *j = &arm->joints[i].actuator.stepper;
-            j->delay = stepper_delays[i];
-            j->stepper = stepper_init(chip,
-                                      stepper_pins[i]);
-        } else {
-            arm->joints[i].kind = ACTUATOR_SERVO;
-            int chidx = i - 1;
-            struct servo_joint *s = &arm->joints[i].actuator.servo;
-            if((ret = hwpwm_chip_export(pwmchip, chidx)) < 0)
-                fprintf(stderr, "hwpwm_chip_export(): %s\n", strerror(hwpwm_error(ret)));
-            if((ret = hwpwm_channel_set_enable(pwmchip, chidx, 0)) < 0)
-                fprintf(stderr, "hwpwm_channel_set_enable(): %s\n", strerror(hwpwm_error(ret)));
-            s->channel = chidx;
-        if((ret = hwpwm_channel_set_period(pwmchip,
-                                           s->channel,
-                                           MG996_PERIOD)) < 0)
+        arm->joints[i].kind = ACTUATOR_SERVO;
+        struct servo_joint *s = &arm->joints[i].actuator.servo;
+        s->channel = i;
+        if((ret = hwpwm_chip_export(pwmchip, s->channel)) < 0)
+            fprintf(stderr, "hwpwm_chip_export(): %s\n", strerror(hwpwm_error(ret)));
+        if((ret = hwpwm_channel_set_enable(pwmchip, s->channel, false)) < 0)
+            fprintf(stderr, "hwpwm_channel_set_enable(): %s\n", strerror(hwpwm_error(ret)));
+        if((ret = hwpwm_channel_set_period_frequency(pwmchip,
+                                                     s->channel,
+                                                     50)) < 0)
             fprintf(stderr, "hwpwm_channel_set_period(): %s\n", strerror(hwpwm_error(ret)));
+        if((ret = hwpwm_channel_set_polarity(pwmchip, s->channel, HWPWM_POLARITY_NORMAL)) < 0)
+            fprintf(stderr, "hwpwm_channel_set_polarity(): %s\n", strerror(hwpwm_error(ret)));
         s->duty_cycle = 0;
         if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip,
                                                        s->channel,
@@ -188,7 +182,6 @@ struct arm *arm_init(void)
             fprintf(stderr, "hwpwm_channel_set_duty_cycle_percent(): %s\n", strerror(hwpwm_error(ret)));
         if((ret = hwpwm_channel_set_enable(pwmchip, s->channel, true)) < 0)
             fprintf(stderr, "hwpwm_channel_set_enable(): %s\n", strerror(hwpwm_error(ret)));
-        }
     }
     arm->joint_idx = 0;
     arm->dir = JOINT_STILL;
