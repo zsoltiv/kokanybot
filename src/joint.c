@@ -81,6 +81,14 @@ static const double servo_default_duty_cycles[NJOINTS] = {
     50.f,
 };
 
+static const struct servo_limit {
+    double min, max;
+} servo_limits[NJOINTS] = {
+    {  0.f, 100.f },
+    {  0.f, 100.f },
+    { 25.f, 100.f },
+};
+
 static const char *pwmchip = "/sys/class/pwm/pwmchip0";
 
 void arm_select_joint(struct arm *arm, int joint)
@@ -126,7 +134,7 @@ static void arm_joint_forward(struct arm *arm, int joint)
         nanosleep(&(struct timespec) {.tv_sec=0,.tv_nsec=arm->joints[joint].actuator.stepper.delay}, NULL);
     } else {
         struct servo_joint *s = &arm->joints[joint].actuator.servo;
-        if(s->duty_cycle_percent < 100) {
+        if(s->duty_cycle_percent < servo_limits[joint].max) {
             s->duty_cycle_percent = s->duty_cycle_percent + DUTY_CYCLE_PERCENT_STEP;
             printf("duty_cycle_percent=%f\n", s->duty_cycle_percent);
             int ret;
@@ -145,7 +153,7 @@ static void arm_joint_backward(struct arm *arm, int joint)
     } else {
         printf("servo %d backward\n", joint);
         struct servo_joint *s = &arm->joints[joint].actuator.servo;
-        if(s->duty_cycle_percent > 0) {
+        if(s->duty_cycle_percent > servo_limits[joint].min) {
             s->duty_cycle_percent = s->duty_cycle_percent - DUTY_CYCLE_PERCENT_STEP;
             printf("duty_cycle_percent=%f\n", s->duty_cycle_percent);
             if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle_percent / 10)) < 0)
