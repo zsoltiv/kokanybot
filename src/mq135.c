@@ -65,17 +65,20 @@ int mq135_thread(void *arg)
 
     while(true) {
         int ret;
-        if(gpiod_line_request_read_edge_events(sensor->line, sensor->events, 1) < 0)
-            perror("gpiod_line_event_read()");
-        struct gpiod_edge_event *ev = gpiod_edge_event_buffer_get_event(sensor->events, 0);
-        sensor->gas_present = gpiod_edge_event_get_event_type(ev) == GPIOD_EDGE_EVENT_FALLING_EDGE;
-        printf("tick %s\n", sensor->gas_present ? "GAS" : "NOGAS");
+        // https://libgpiod.readthedocs.io/en/latest/group__line__request.html
+        if((ret = gpiod_line_request_wait_edge_events(sensor->line, 10000ULL)) < 0) {
+            perror("gpiod_line_request_wait_edge_events()");
+        } else if(ret > 0) {
+            if(gpiod_line_request_read_edge_events(sensor->line, sensor->events, 1) < 0)
+                perror("gpiod_line_event_read()");
+            struct gpiod_edge_event *ev = gpiod_edge_event_buffer_get_event(sensor->events, 0);
+            sensor->gas_present = gpiod_edge_event_get_event_type(ev) == GPIOD_EDGE_EVENT_FALLING_EDGE;
+            printf("tick %s\n", sensor->gas_present ? "GAS" : "NOGAS");
+        }
         if(send(sensor->client, &sensor->gas_present, 1, 0) < 0) {
-            if(errno == ECONNRESET || errno == EPIPE) {
-                close(sensor->client);
-                sensor->client = net_accept(sensor->port);
-            }
             perror("send()");
+            close(sensor->client);
+            sensor->client = net_accept(sensor->port);
         }
     }
     return 0;
