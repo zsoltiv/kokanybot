@@ -105,10 +105,12 @@ int net_accept(int port)
 
 uint8_t net_receive_keypress(int client)
 {
-    uint8_t keycode;
-    if(recv(client, &keycode, 1, 0) < sizeof(keycode)) {
-        if(errno) {
+    int ret;
+    uint8_t keycode = 0;
+    if((ret = recv(client, &keycode, 1, 0)) < sizeof(keycode)) {
+        if(ret < 0) {
             perror("recv()");
+            return 0;
         }
     }
 
