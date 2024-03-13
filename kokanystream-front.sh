@@ -10,4 +10,4 @@ done
 
 echo "Client ${address}"
 
-rpicam-vid --codec h264 -n --denoise cdn_off -t 0 --inline --flush -o "udp://${address}:${port}"
+rpicam-vid --codec h264 --width 1296 --height 972 -n --denoise cdn_off -t 0 --inline --flush -o "udp://${address}:${port}"
