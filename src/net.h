@@ -23,7 +23,7 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 
-int net_accept(int port);
 uint8_t net_receive_keypress(int client);
+int net_init(uint_fast16_t port);
 
 #endif

@@ -20,7 +20,7 @@
 #define _XOPEN_SOURCE 700
 #include <netinet/in.h>
 #include <stdio.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -63,12 +63,12 @@ static struct ifaddrs *net_get_interface_addr(void)
     return interface;
 }
 
-int net_accept(int port)
+int net_init(uint_fast16_t port)
 {
     struct ifaddrs *interface = net_get_interface_addr();
     struct sockaddr_in *iaddr = (struct sockaddr_in *)interface->ifa_addr;
     iaddr->sin_port = htons(port);
-    int listener = socket(iaddr->sin_family, SOCK_STREAM, 0);
+    int listener = socket(iaddr->sin_family, SOCK_DGRAM, 0);
     if(listener < 0)
         perror("socket()");
     int yes = 1;
@@ -80,38 +80,22 @@ int net_accept(int port)
         perror("bind()");
         exit(1);
     }
-    if(listen(listener, 1) < 0) {
-        perror("listen()");
-        exit(1);
-    }
     char addrstr[INET_ADDRSTRLEN] = {0};
     if(!inet_ntop(AF_INET, &iaddr->sin_addr, addrstr, sizeof(addrstr))) {
         perror("inet_ntop()");
         exit(1);
     }
-    printf("Listening on %s:%u\n", addrstr, port);
-    int client = accept(listener,
-                        NULL,
-                        NULL);
-    if(client < 0) {
-        perror("accept()");
-        exit(1);
-    }
-    close(listener);
-    free(interface);
+    printf("Listening on %s:%"PRIuFAST16"\n", addrstr, port);
 
-    return client;
+    return listener;
 }
 
-uint8_t net_receive_keypress(int client)
+uint8_t net_receive_keypress(int listener)
 {
-    int ret;
     uint8_t keycode = 0;
-    if((ret = recv(client, &keycode, 1, 0)) < sizeof(keycode)) {
-        if(ret < 0) {
-            perror("recv()");
-            return 0;
-        }
+    if(recvfrom(listener, &keycode, 1, 0, NULL, NULL) < sizeof(keycode)) {
+        perror("recvfrom()");
+        return 0;
     }
 
     return keycode;
