@@ -61,7 +61,7 @@ int mq135_thread(void *arg)
     struct mq135 *sensor = (struct mq135 *)arg;
     sensor->events = gpiod_edge_event_buffer_new(1);
 
-    sensor->client = net_accept(sensor->port);
+    //sensor->client = net_accept(sensor->port);
 
     while(true) {
         int ret;
@@ -78,7 +78,7 @@ int mq135_thread(void *arg)
         if(send(sensor->client, &sensor->gas_present, 1, 0) < 0) {
             perror("send()");
             close(sensor->client);
-            sensor->client = net_accept(sensor->port);
+            //sensor->client = net_accept(sensor->port);
         }
     }
     return 0;
