@@ -1,2 +1,2 @@
 ACTION=="add", SUBSYSTEM=="video4linux", DRIVERS=="uvcvideo", SYMLINK+="rear-camera"
-ACTION=="add", SUBSYSTEM=="video4linux", DRIVERS=="unicam", SYMLINK+="front-camera"
+ACTION=="add", SUBSYSTEM=="video4linux", ATTRS{manufacturer}=="Jieli Technology",  SYMLINK+="front-camera"

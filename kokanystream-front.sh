@@ -10,4 +10,4 @@ done
 
 echo "Client ${address}"
 
-rpicam-vid --codec h264 --width 1296 --height 972 -n --denoise cdn_off -t 0 --inline --flush -o "udp://${address}:${port}"
+ffmpeg -f video4linux2 -fflags nobuffer -input_format mjpeg -video_size 1280x720 -i /dev/front-camera -fflags nobuffer -c:v copy -f mjpeg "udp://${address}:${port}"
