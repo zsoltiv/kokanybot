@@ -29,40 +29,20 @@
 
 #include <hwpwm.h>
 
-#include "offsets.h"
-#include "gpio.h"
-#include "stepper.h"
 #include "joint.h"
 
 #define NJOINTS 3
-#define MG996_PERIOD 20000000ULL
-#define DUTY_CYCLE_PERCENT_STEP 0.2
-
-enum actuator_kind {
-    ACTUATOR_STEPPER,
-    ACTUATOR_SERVO,
-};
-
-struct stepper_joint {
-    struct stepper *stepper;
-    uint_least64_t delay;
-};
+#define MG996_PERIOD UINT64_C(20000000)
+#define PRECISION UINT64_C(100)
+#define DUTY_CYCLE_STEP UINT64_C(1)
 
 struct servo_joint {
+    uint64_t duty_cycle_percent;
     unsigned channel;
-    double duty_cycle_percent;
-};
-
-struct joint {
-    union {
-        struct stepper_joint stepper;
-        struct servo_joint servo;
-    } actuator;
-    enum actuator_kind kind;
 };
 
 struct arm {
-    struct joint joints[NJOINTS];
+    struct servo_joint joints[NJOINTS];
     thrd_t tid;
     mtx_t lock;
     int joint_idx;
@@ -75,18 +55,18 @@ static const bool servo_invert_directions[NJOINTS] = {
     false,
 };
 
-static const double servo_default_duty_cycles[NJOINTS] = {
-    71.f,
-    28.f,
-    50.f,
+static const uint64_t servo_default_duty_cycles[NJOINTS] = {
+    50,
+    28,
+    50,
 };
 
 static const struct servo_limit {
-    double min, max;
+    uint64_t min, max;
 } servo_limits[NJOINTS] = {
-    {  0.f, 100.f },
-    {  0.f, 100.f },
-    { 25.f, 100.f },
+    {  25, PRECISION },
+    {   0, PRECISION },
+    {   0, PRECISION },
 };
 
 static const char *pwmchip = "/sys/class/pwm/pwmchip0";
@@ -98,6 +78,15 @@ void arm_select_joint(struct arm *arm, int joint)
         arm->joint_idx = j >= NJOINTS ? (NJOINTS - 1) : j;
         printf("joint %d selected\n", joint);
         mtx_unlock(&arm->lock);
+}
+
+static inline uint64_t calculate_duty_cycle(const uint64_t period,
+                                            const uint64_t precision,
+                                            const uint64_t value)
+{
+    // divide the duty cycle by 10 because for some reason the servos
+    // refuse to function above a 10% duty cycle
+    return period / precision / 10 * value;
 }
 
 static inline int maybe_invert(struct arm *arm, int idx, int dir)
@@ -124,41 +113,42 @@ void arm_set_dir(struct arm *arm, int dir)
 
 static inline void arm_sleep(void)
 {
-    nanosleep(&(struct timespec){.tv_sec=0,.tv_nsec=10000000ULL},NULL);
+    // sleep 20ms
+    nanosleep(&(struct timespec){.tv_sec=0,.tv_nsec=MG996_PERIOD},NULL);
 }
 
 static void arm_joint_forward(struct arm *arm, int joint)
 {
-    if(arm->joints[joint].kind == ACTUATOR_STEPPER) {
-        stepper_forward(arm->joints[joint].actuator.stepper.stepper);
-        nanosleep(&(struct timespec) {.tv_sec=0,.tv_nsec=arm->joints[joint].actuator.stepper.delay}, NULL);
-    } else {
-        struct servo_joint *s = &arm->joints[joint].actuator.servo;
-        if(s->duty_cycle_percent < servo_limits[joint].max) {
-            s->duty_cycle_percent = s->duty_cycle_percent + DUTY_CYCLE_PERCENT_STEP;
-            printf("duty_cycle_percent=%f\n", s->duty_cycle_percent);
-            int ret;
-            if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle_percent / 10)) < 0)
-                fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(errno));
-        }
+    struct servo_joint *s = &arm->joints[joint];
+    if(s->duty_cycle_percent < servo_limits[joint].max) {
+        s->duty_cycle_percent = s->duty_cycle_percent + DUTY_CYCLE_STEP;
+        printf("duty_cycle_percent=%"PRIu64"\n", s->duty_cycle_percent);
+        int ret;
+        if((ret = hwpwm_channel_set_duty_cycle(pwmchip,
+                                               s->channel,
+                                               calculate_duty_cycle(MG996_PERIOD,
+                                                                    PRECISION,
+                                                                    s->duty_cycle_percent))) < 0)
+            fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(errno));
+        printf("%"PRIu64"\n", s->duty_cycle_percent);
     }
 }
 
 static void arm_joint_backward(struct arm *arm, int joint)
 {
     int ret;
-    if(arm->joints[joint].kind == ACTUATOR_STEPPER) {
-        stepper_backward(arm->joints[joint].actuator.stepper.stepper);
-        nanosleep(&(struct timespec) {.tv_sec=0,.tv_nsec=arm->joints[joint].actuator.stepper.delay}, NULL);
-    } else {
-        printf("servo %d backward\n", joint);
-        struct servo_joint *s = &arm->joints[joint].actuator.servo;
-        if(s->duty_cycle_percent > servo_limits[joint].min) {
-            s->duty_cycle_percent = s->duty_cycle_percent - DUTY_CYCLE_PERCENT_STEP;
-            printf("duty_cycle_percent=%f\n", s->duty_cycle_percent);
-            if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip, s->channel, s->duty_cycle_percent / 10)) < 0)
-                fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(hwpwm_error(ret)));
-        }
+    printf("servo %d backward\n", joint);
+    struct servo_joint *s = &arm->joints[joint];
+    if(s->duty_cycle_percent > servo_limits[joint].min) {
+        s->duty_cycle_percent = s->duty_cycle_percent - DUTY_CYCLE_STEP;
+        printf("duty_cycle_percent=%"PRIu64"\n", s->duty_cycle_percent);
+        if((ret = hwpwm_channel_set_duty_cycle(pwmchip,
+                                               s->channel,
+                                               calculate_duty_cycle(MG996_PERIOD,
+                                                                    PRECISION,
+                                                                    s->duty_cycle_percent))) < 0)
+            fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(hwpwm_error(ret)));
+        printf("%"PRIu64"\n", s->duty_cycle_percent);
     }
 }
 
@@ -197,8 +187,7 @@ struct arm *arm_init(void)
         if((ret = hwpwm_chip_unexport(pwmchip, i)) < 0)
             fprintf(stderr, "hwpwm_chip_unexport(): %s\n", strerror(hwpwm_error(ret)));
     for(int i = 0; i < NJOINTS; i++) {
-        arm->joints[i].kind = ACTUATOR_SERVO;
-        struct servo_joint *s = &arm->joints[i].actuator.servo;
+        struct servo_joint *s = &arm->joints[i];
         s->channel = npwm - i - 2;
         printf("chan=%u\n", s->channel);
         if((ret = hwpwm_chip_export(pwmchip, s->channel)) < 0)
@@ -214,7 +203,7 @@ struct arm *arm_init(void)
         s->duty_cycle_percent = servo_default_duty_cycles[i];
         if((ret = hwpwm_channel_set_duty_cycle_percent(pwmchip,
                                                        s->channel,
-                                                       s->duty_cycle_percent / 10)) < 0)
+                                                       s->duty_cycle_percent)) < 0)
             fprintf(stderr, "hwpwm_channel_set_duty_cycle_percent(): %s\n", strerror(hwpwm_error(ret)));
         if((ret = hwpwm_channel_set_enable(pwmchip, s->channel, true)) < 0)
             fprintf(stderr, "hwpwm_channel_set_enable(): %s\n", strerror(hwpwm_error(ret)));
