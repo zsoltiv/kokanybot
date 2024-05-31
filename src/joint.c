@@ -26,15 +26,18 @@
 #include <threads.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <assert.h>
 
 #include <hwpwm.h>
 
 #include "joint.h"
 
-#define NJOINTS 3
+#define NJOINTS 5
 #define MG996_PERIOD UINT64_C(20000000)
 #define PRECISION UINT64_C(100)
 #define DUTY_CYCLE_STEP UINT64_C(1)
+
+#define ELEMS(x) (sizeof((x)) / sizeof((x)[0]))
 
 struct servo_joint {
     uint64_t duty_cycle_percent;
@@ -53,11 +56,15 @@ static const bool servo_invert_directions[NJOINTS] = {
     false,
     true,
     false,
+    false,
+    true,
 };
 
 static const uint64_t servo_default_duty_cycles[NJOINTS] = {
     50,
     28,
+    50,
+    50,
     50,
 };
 
@@ -65,6 +72,8 @@ static const struct servo_limit {
     uint64_t min, max;
 } servo_limits[NJOINTS] = {
     {  25, PRECISION },
+    {   0, PRECISION },
+    {   0, PRECISION },
     {   0, PRECISION },
     {   0, PRECISION },
 };
@@ -84,9 +93,9 @@ static inline uint64_t calculate_duty_cycle(const uint64_t period,
                                             const uint64_t precision,
                                             const uint64_t value)
 {
-    // divide the duty cycle by 10 because for some reason the servos
-    // refuse to function above a 10% duty cycle
-    return period / precision / 10 * value;
+    // duty cycle must be between 1ms and 2ms
+    // XXX everything is in ns
+    return period / precision * value / 20 + UINT64_C(1000000);
 }
 
 static inline int maybe_invert(struct arm *arm, int idx, int dir)
@@ -161,15 +170,33 @@ static int arm_thread(void *arg)
         int dir = arm->dir;
         int joint = arm->joint_idx;
         mtx_unlock(&arm->lock);
-        switch(maybe_invert(arm, joint, dir)) {
-            case JOINT_STILL:
-                break;
-            case JOINT_BACKWARD:
-                arm_joint_backward(arm, joint);
-                break;
-            case JOINT_FORWARD:
-                arm_joint_forward(arm, joint);
-                break;
+        if(joint == ELEMS(servo_limits) - 1 || joint == ELEMS(servo_limits) - 2) {
+            int other = joint == ELEMS(servo_limits) - 1 ?
+                        ELEMS(servo_limits) - 2 :
+                        ELEMS(servo_limits) - 1;
+            switch(maybe_invert(arm, joint, dir)) {
+                case JOINT_STILL:
+                    break;
+                case JOINT_BACKWARD:
+                    arm_joint_backward(arm, joint);
+                    arm_joint_forward(arm, other);
+                    break;
+                case JOINT_FORWARD:
+                    arm_joint_forward(arm, joint);
+                    arm_joint_backward(arm, other);
+                    break;
+            }
+        } else {
+            switch(maybe_invert(arm, joint, dir)) {
+                case JOINT_STILL:
+                    break;
+                case JOINT_BACKWARD:
+                    arm_joint_backward(arm, joint);
+                    break;
+                case JOINT_FORWARD:
+                    arm_joint_forward(arm, joint);
+                    break;
+            }
         }
         arm_sleep();
     }
@@ -179,6 +206,10 @@ static int arm_thread(void *arg)
 
 struct arm *arm_init(void)
 {
+    static_assert(ELEMS(servo_limits) == ELEMS(servo_invert_directions) &&
+                  ELEMS(servo_limits) == ELEMS(servo_default_duty_cycles),
+                  "");
+
     int ret;
     struct arm *arm = malloc(sizeof(struct arm));
     uint64_t npwm = hwpwm_chip_npwm(pwmchip);
