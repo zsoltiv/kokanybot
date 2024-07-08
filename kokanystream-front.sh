@@ -5,7 +5,8 @@ port="1338"
 address=""
 
 while [ "$address" = "" ]; do
-    address="$(ip neigh show dev $dev | cut -d' ' -f1 | grep -oE '[^\s]+')"
+    address="$(kokany-select-ip.sh)"
+    echo "address is ${address}"
 done
 
 echo "Client ${address}"
