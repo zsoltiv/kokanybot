@@ -20,6 +20,7 @@
 #include <gpiod.h>
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
+#include <string.h>
 
 #include "gpio.h"
 #include "offsets.h"
@@ -33,11 +34,11 @@ static const unsigned m1_positive = GPIO24,
                       m2_positive = GPIO6,
                       m2_negative = GPIO22,
                       m2_en       = GPIO17,
-                      m3_positive = GPIO16,
-                      m3_negative = GPIO23,
+                      m3_positive = GPIO23,
+                      m3_negative = GPIO16,
                       m3_en       = GPIO12,
-                      m4_positive = GPIO13,
-                      m4_negative = GPIO18,
+                      m4_positive = GPIO18,
+                      m4_negative = GPIO13,
                       m4_en       = GPIO25;
 
 static const unsigned motor_offsets[] = {
@@ -49,19 +50,31 @@ static const unsigned motor_offsets[] = {
 
 static struct gpiod_line_request *motor_req;
 
-static const enum gpiod_line_value values_low[NMOTORS]  = { 0, 0, 0, 0 };
-static const enum gpiod_line_value values_high[NMOTORS] = { 1, 1, 1, 1 };
+static const enum gpiod_line_value values_low[NMOTORS]  = {
+    GPIOD_LINE_VALUE_INACTIVE,
+    GPIOD_LINE_VALUE_INACTIVE,
+    GPIOD_LINE_VALUE_INACTIVE,
+    GPIOD_LINE_VALUE_INACTIVE,
+};
+static const enum gpiod_line_value values_high[NMOTORS] = {
+    GPIOD_LINE_VALUE_ACTIVE,
+    GPIOD_LINE_VALUE_ACTIVE,
+    GPIOD_LINE_VALUE_ACTIVE,
+    GPIOD_LINE_VALUE_ACTIVE,
+};
 
 void motor_init(void)
 {
+    int ret;
     motor_req = gpio_init_line(chip,
                                sizeof(motor_offsets) / sizeof(motor_offsets[0]),
                                motor_offsets,
                                GPIOD_LINE_DIRECTION_OUTPUT);
-    gpiod_line_request_set_values_subset(motor_req,
-                                         NMOTORS,
-                                         (const unsigned[]){m1_en,m2_en,m3_en,m4_en},
-                                         values_high);
+    if((ret = gpiod_line_request_set_values_subset(motor_req,
+                                                   NMOTORS,
+                                                   (const unsigned[]){m1_en,m2_en,m3_en,m4_en},
+                                                   values_high)) < 0)
+        fprintf(stderr, "gpiod_line_request_set_values_subset(): %s\n", strerror(ret));
 }
 
 void motor_cleanup(void)
@@ -112,17 +125,17 @@ void motor_left(bool pressed)
 {
     gpiod_line_request_set_values_subset(motor_req,
                                          NMOTORS,
-                                         (const unsigned[]){m1_negative,m2_positive,m3_negative,m4_positive},
+                                         (const unsigned[]){m1_negative,m2_positive,m3_positive,m4_negative},
                                          values_low);
     if(pressed) {
     gpiod_line_request_set_values_subset(motor_req,
                                          NMOTORS,
-                                         (const unsigned[]){m1_positive,m2_negative,m3_positive,m4_negative},
+                                         (const unsigned[]){m1_positive,m2_negative,m3_negative,m4_positive},
                                          values_high);
     } else {
     gpiod_line_request_set_values_subset(motor_req,
                                          NMOTORS,
-                                         (const unsigned[]){m1_positive,m2_negative,m3_positive,m4_negative},
+                                         (const unsigned[]){m1_positive,m2_negative,m3_negative,m4_positive},
                                          values_low);
     }
 }
@@ -131,17 +144,17 @@ void motor_right(bool pressed)
 {
     gpiod_line_request_set_values_subset(motor_req,
                                          NMOTORS,
-                                         (const unsigned[]){m1_positive,m2_negative,m3_positive,m4_negative},
+                                         (const unsigned[]){m1_positive,m2_negative,m3_negative,m4_positive},
                                          values_low);
     if(pressed) {
     gpiod_line_request_set_values_subset(motor_req,
                                          NMOTORS,
-                                         (const unsigned[]){m1_negative,m2_positive,m3_negative,m4_positive},
+                                         (const unsigned[]){m1_negative,m2_positive,m3_positive,m4_negative},
                                          values_high);
     } else {
     gpiod_line_request_set_values_subset(motor_req,
                                          NMOTORS,
-                                         (const unsigned[]){m1_negative,m2_positive,m3_negative,m4_positive},
+                                         (const unsigned[]){m1_negative,m2_positive,m3_positive,m4_negative},
                                          values_low);
     }
 }
