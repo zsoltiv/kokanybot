@@ -210,12 +210,11 @@ struct arm *arm_init(void)
                   ELEMS(servo_limits) == ELEMS(servo_default_duty_cycles),
                   "");
 
-    int ret;
+    int ret, npwm;
     struct arm *arm = malloc(sizeof(struct arm));
-    uint64_t npwm = hwpwm_chip_npwm(pwmchip);
-    printf("npwm=%"PRIu64"\n", npwm);
-    if(npwm > 17)
-        npwm = 0;
+    if((ret = hwpwm_chip_npwm(pwmchip, &npwm)) < 0)
+        fprintf(stderr, "hwpwm_chip_npwm(): %s\n", strerror(hwpwm_error(ret)));
+    printf("npwm=%d\n", npwm);
     for(int i = 0; i < npwm; i++)
         if((ret = hwpwm_chip_unexport(pwmchip, i)) < 0)
             fprintf(stderr, "%d hwpwm_chip_unexport(): %s\n", i, strerror(hwpwm_error(ret)));
