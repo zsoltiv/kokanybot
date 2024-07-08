@@ -71,7 +71,7 @@ static const uint64_t servo_default_duty_cycles[NJOINTS] = {
 static const struct servo_limit {
     uint64_t min, max;
 } servo_limits[NJOINTS] = {
-    {  25, PRECISION },
+    {   0, PRECISION },
     {   0, PRECISION },
     {   0, PRECISION },
     {   0, PRECISION },
@@ -95,7 +95,8 @@ static inline uint64_t calculate_duty_cycle(const uint64_t period,
 {
     // duty cycle must be between 1ms and 2ms
     // XXX everything is in ns
-    return period / precision * value / 20 + UINT64_C(1000000);
+    //return period / precision * value / 20 + UINT64_C(1000000);
+    return period / precision * value / 10 + UINT64_C(1000000);
 }
 
 static inline int maybe_invert(struct arm *arm, int idx, int dir)
@@ -126,38 +127,35 @@ static inline void arm_sleep(void)
     nanosleep(&(struct timespec){.tv_sec=0,.tv_nsec=MG996_PERIOD},NULL);
 }
 
+static void arm_joint_apply_duty_cycle(struct arm *arm, int joint)
+{
+    struct servo_joint *s = &arm->joints[joint];
+    printf("duty_cycle_percent=%"PRIu64"\n", s->duty_cycle_percent);
+    int ret;
+    if((ret = hwpwm_channel_set_duty_cycle(pwmchip,
+                                           s->channel,
+                                           calculate_duty_cycle(MG996_PERIOD,
+                                                                PRECISION,
+                                                                s->duty_cycle_percent))) < 0)
+        fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(errno));
+    printf("%"PRIu64"\n", s->duty_cycle_percent);
+}
+
 static void arm_joint_forward(struct arm *arm, int joint)
 {
     struct servo_joint *s = &arm->joints[joint];
     if(s->duty_cycle_percent < servo_limits[joint].max) {
         s->duty_cycle_percent = s->duty_cycle_percent + DUTY_CYCLE_STEP;
-        printf("duty_cycle_percent=%"PRIu64"\n", s->duty_cycle_percent);
-        int ret;
-        if((ret = hwpwm_channel_set_duty_cycle(pwmchip,
-                                               s->channel,
-                                               calculate_duty_cycle(MG996_PERIOD,
-                                                                    PRECISION,
-                                                                    s->duty_cycle_percent))) < 0)
-            fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(errno));
-        printf("%"PRIu64"\n", s->duty_cycle_percent);
+        arm_joint_apply_duty_cycle(arm, joint);
     }
 }
 
 static void arm_joint_backward(struct arm *arm, int joint)
 {
-    int ret;
-    printf("servo %d backward\n", joint);
     struct servo_joint *s = &arm->joints[joint];
     if(s->duty_cycle_percent > servo_limits[joint].min) {
         s->duty_cycle_percent = s->duty_cycle_percent - DUTY_CYCLE_STEP;
-        printf("duty_cycle_percent=%"PRIu64"\n", s->duty_cycle_percent);
-        if((ret = hwpwm_channel_set_duty_cycle(pwmchip,
-                                               s->channel,
-                                               calculate_duty_cycle(MG996_PERIOD,
-                                                                    PRECISION,
-                                                                    s->duty_cycle_percent))) < 0)
-            fprintf(stderr, "hwpwm_channel_set_duty_cycle() failed: %s\n", strerror(hwpwm_error(ret)));
-        printf("%"PRIu64"\n", s->duty_cycle_percent);
+        arm_joint_apply_duty_cycle(arm, joint);
     }
 }
 
@@ -186,6 +184,7 @@ static int arm_thread(void *arg)
                     arm_joint_backward(arm, other);
                     break;
             }
+            fprintf(stderr, "%d %"PRIu64"\n", other, arm->joints[other].duty_cycle_percent);
         } else {
             switch(maybe_invert(arm, joint, dir)) {
                 case JOINT_STILL:
@@ -199,6 +198,7 @@ static int arm_thread(void *arg)
             }
         }
         arm_sleep();
+        fprintf(stderr, "%d %"PRIu64"\n", joint, arm->joints[joint].duty_cycle_percent);
     }
 
     return 0;
@@ -214,9 +214,11 @@ struct arm *arm_init(void)
     struct arm *arm = malloc(sizeof(struct arm));
     uint64_t npwm = hwpwm_chip_npwm(pwmchip);
     printf("npwm=%"PRIu64"\n", npwm);
+    if(npwm > 17)
+        npwm = 0;
     for(int i = 0; i < npwm; i++)
         if((ret = hwpwm_chip_unexport(pwmchip, i)) < 0)
-            fprintf(stderr, "hwpwm_chip_unexport(): %s\n", strerror(hwpwm_error(ret)));
+            fprintf(stderr, "%d hwpwm_chip_unexport(): %s\n", i, strerror(hwpwm_error(ret)));
     for(int i = 0; i < NJOINTS; i++) {
         struct servo_joint *s = &arm->joints[i];
         s->channel = npwm - i - 2;
@@ -238,6 +240,8 @@ struct arm *arm_init(void)
             fprintf(stderr, "hwpwm_channel_set_duty_cycle_percent(): %s\n", strerror(hwpwm_error(ret)));
         if((ret = hwpwm_channel_set_enable(pwmchip, s->channel, true)) < 0)
             fprintf(stderr, "hwpwm_channel_set_enable(): %s\n", strerror(hwpwm_error(ret)));
+
+        arm_joint_apply_duty_cycle(arm, i);
     }
     arm->joint_idx = 0;
     arm->dir = JOINT_STILL;
