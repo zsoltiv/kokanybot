@@ -95,8 +95,8 @@ static inline uint64_t calculate_duty_cycle(const uint64_t period,
 {
     // duty cycle must be between 1ms and 2ms
     // XXX everything is in ns
-    //return period / precision * value / 20 + UINT64_C(1000000);
-    return period / precision * value / 10 + UINT64_C(1000000);
+    return period / precision * value / 20 + UINT64_C(1000000);
+    //return period / precision * value / 10 + UINT64_C(1000000);
 }
 
 static inline int maybe_invert(struct arm *arm, int idx, int dir)
