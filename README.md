@@ -30,6 +30,7 @@ SSH enabled
 
 ```
 dtparam=i2c_arm=on
+enable_uart=1
 
 dtoverlay=kokanystepperctl
 dtoverlay=i2c-pwm-pca9685a,addr=0x40
