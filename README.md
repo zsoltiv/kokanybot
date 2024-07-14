@@ -5,12 +5,21 @@ It's based on the previous year's code, which you can read after doing a `git ch
 
 ## Packages
 ```
-sudo apt install git make autoconf autoconf-archive gcc gpiod libgpiod-dev ffmpeg libi2c-dev libavformat-dev libavutil-dev rpicam-apps
+sudo apt install git make autoconf dnsmasq autoconf-archive libtool pkg-config gcc ffmpeg libi2c-dev libavformat-dev libavutil-dev
+sudo systemctl enable dnsmasq
 git clone https://github.com/zsoltiv/libhwpwm.git
 cd libhwpwm
 make
 sudo make install
+cd
+git clone https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
+cd libgpiod
+./autogen.sh --enable-tools=yes
+make
+sudo make install
 ```
+
+Afterwards, build this repo with the Makefile and reboot
 
 ## OS
 
