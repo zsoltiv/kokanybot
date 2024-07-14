@@ -38,6 +38,7 @@ install: all
 	install -m 744 kokany-select-ip.sh /usr/bin
 	install -m 744 kokanyaudio.sh /usr/bin
 	install -m 660 rules/* /etc/udev/rules.d/
+	install -m 660 interfaces/* /etc/network/interfaces.d/
 	install -m 755 overlays/*.dtbo /boot/firmware/overlays/
 	install -m 644 kokanybot_dhcp.conf /etc/dnsmasq.d/
 	systemctl enable kokanybot.service
